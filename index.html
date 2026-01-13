@@ -9,10 +9,41 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+    <header>
     <h1>The Phisherman</h1>
     <p>Learning to spot phishing emails</p>
+    </header>
 
-    <script src="app.js"></script>
+    <main>  
+        <section id="email-container">  
+            <h2>Email Preview</h2>
+        
+            <div id="email">
+                <p><strong>From:</strong> <span id="email-from">email@domain.com</span></p>
+                <p><strong>Subject:</strong> <span id="email-subject">Email Subject Here</span></p>
+
+                <div id="email-body">
+                    <p>Email body content goes here...</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="actions">  
+            <button id="btn-legit">Mark as Legitimate</button>
+            <button id="btn-phish">Mark as Phishing</button>
+        </section>
+
+        <section id="feedback">     
+         <p id="feedback-message">Make your choice above to see if you're correct!</p>
+        </section>
+    </main>
+
+    <footer>        
+         <p>Score: <span id="score">0</span></p>    
+    </footer>
+</div>
+
+<script src="app.js"></script>
+
 </body>
 </html>
