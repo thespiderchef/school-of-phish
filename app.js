@@ -22,9 +22,8 @@ const email1 = {
 function renderEmail(email) {
   emailFromEl.textContent = email.from;
   emailSubjectEl.textContent = email.subject;
-  console.log(typeof email.body);  // Debugging line to check the type of email.body as its coming out weird
+  emailBodyEl.innerHTML = email.body;   // Using innerHTML to render HTML content
 
-  emailBodyEl.textContent = email.body;
 }
 
 // Initial render
