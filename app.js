@@ -1,16 +1,29 @@
 // The Phisherman
-// got rid of stages as i lost track, will remove from all future versions
 
 console.log("The Phisherman: app.js connected");
 
+const emailFromEl = document.getElementById("email-from");
+const emailSubjectEl = document.getElementById("email-subject");
+const emailBodyEl = document.getElementById("email-body");
 
-const emailFromEl = document.getElementById("email-from"); 
-const emailSubjectEl = document.getElementById("email-subject"); 
-const emailBodyEl = document.getElementById("email-body"); 
+// Hardcoded email object
+const email1 = {
+  from: "IT Support <it-support@university-helpdesk.com>",
+  subject: "Urgent: Password Expiry Notice",
+  body: `
+    <p>Hello,</p>
+    <p>Your password will expire today. Please reset it immediately to avoid losing access.</p>
+    <p><a href="#">Reset Password</a></p>
+    <p>Regards,<br>IT Support</p>
+  `
+};
 
-console.log("emailFromEl:", emailFromEl);
-console.log("emailSubjectEl:", emailSubjectEl);
-console.log("emailBodyEl:", emailBodyEl);
-if (!emailFromEl || !emailSubjectEl || !emailBodyEl) {
-  console.warn("One or more email DOM elements could not be found");
-} 
+// Render function
+function renderEmail(email) {
+  emailFromEl.textContent = email.from;
+  emailSubjectEl.textContent = email.subject;
+  emailBodyEl.textContent = email.body;
+}
+
+// Initial render
+renderEmail(email1);
