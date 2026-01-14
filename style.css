@@ -1,8 +1,143 @@
-﻿/* 
-  The Phisherman
-  Stage 0: CSS scaffold
-*/
+﻿/* The Phisherman - Nautical Theme Variables */
+
+/* Day Mode (default) */
+:root {
+  /* Core */
+  --color-primary: #0B3C5D;      /* Navy */
+  --color-secondary: #1D7FA3;    /* Sea Blue */
+
+  /* Surfaces */
+  --color-bg: #F4F7FA;           /* Off-White */
+  --color-surface: #FFFFFF;      /* White */
+
+  /* Text */
+  --color-text: #2B2E34;         /* Deep Slate */
+  --color-text-muted: #4B5563;
+
+  /* Status */
+  --color-success: #2E8B57;      /* Sea Green */
+  --color-danger: #C0392B;       /* Signal Red */
+
+  /* Borders */
+  --color-border: #D7DEE7;
+}
+
+/* Night Mode */
+body.dark {
+  --color-primary: #081C2D;      /* Deep Navy */
+  --color-secondary: #3A6EA5;    /* Steel Blue */
+
+  --color-bg: #0F172A;           /* Almost Black */
+  --color-surface: #1E293B;      /* Dark Slate */
+
+  --color-text: #E5E7EB;         /* Soft White */
+  --color-text-muted: #CBD5E1;
+
+  --color-success: #3CB371;      /* Muted Green */
+  --color-danger: #E06666;       /* Muted Red */
+
+  --color-border: #334155;
+}
+
+/* layout scaffolding for the app */
+
+* {
+  box-sizing: border-box;
+}
 
 body {
-    font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Top banner */
+#top-banner {
+  padding: 1rem;
+  background: var(--color-primary);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+}
+
+#top-banner h1 {
+  margin: 0;
+  color: var(--color-surface);
+}
+
+#top-banner .tagline {
+  margin: 0.25rem 0 0 0;
+  color: var(--color-text-muted);
+}
+
+/* Layout */
+#layout {
+  display: flex;
+  min-height: calc(100vh - 90px);
+}
+
+/* Sidebar */
+#side-menu {
+  width: 220px;
+  padding: 1rem;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
+
+#side-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#side-menu li {
+  margin-bottom: 0.75rem;
+}
+
+#side-menu a {
+  text-decoration: none;
+  color: var(--color-secondary);
+  font-weight: 600;
+}
+
+#side-menu a:hover {
+  text-decoration: underline;
+}
+
+/* Main content */
+#main-content {
+  flex: 1;
+  padding: 1rem;
+  max-width: 1100px;
+}
+
+/* Email card */
+#email {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+/* Buttons */
+button {
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-secondary);
+  color: var(--color-surface);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+button:hover {
+  filter: brightness(0.95);
+}
+
+/* Feedback */
+#feedback {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
 }

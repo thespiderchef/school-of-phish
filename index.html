@@ -9,12 +9,25 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-    <h1>The Phisherman</h1>
+    <div id ="app">
+   
+    <header id="top-banner">
+        <div class="brand">
+        <h1>The Phisherman</h1>
     <p>Learning to spot phishing emails</p>
+        </div>
     </header>
+    
+    <div id ="layout">
+        <nav id=""side-menu">
+            <ul>
+                <li><a href="#">Training</a></li>
+                <li><a href="#">Phishing Tips</a></li>
+                <li><a href="#">About</a></li>
+            </ul>
+        </nav>
 
-    <main>  
+    <main id="main-content">  
         <section id="email-container">  
             <h2>Email Preview</h2>
         
@@ -36,11 +49,14 @@
         <section id="feedback">     
          <p id="feedback-message">Make your choice above to see if you're correct!</p>
         </section>
-    </main>
+    
 
     <footer>        
          <p>Score: <span id="score">0</span></p>    
     </footer>
+    </main>
+
+    </div>
 </div>
 
 <script src="app.js"></script>
