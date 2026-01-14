@@ -44,10 +44,10 @@ renderEmail(email1);
 // button click handlers - for now, both will just increase the score, we'll work on logic later
 legitBtn.addEventListener("click", function () {
   if (email1.isPhishing === false) {
-    feedbackMessageEl.textContent = "Correct! This email is legitimate.";
+    feedbackEl.textContent = "Correct! This email is legitimate.";
     score++;
   } else {
-    feedbackMessageEl.textContent = "Incorrect. This email shows signs of phishing.";
+    feedbackEl.textContent = "Incorrect. This email shows signs of phishing.";
   }
 
   scoreEl.textContent = score;
@@ -55,10 +55,10 @@ legitBtn.addEventListener("click", function () {
 
 phishBtn.addEventListener("click", function () {
   if (email1.isPhishing === true) {
-    feedbackMessageEl.textContent = "Correct! This email is a phishing attempt.";
+    feedbackEl.textContent = "Correct! This email is a phishing attempt.";
     score++;
   } else {
-    feedbackMessageEl.textContent = "Incorrect. This email appears to be legitimate.";
+    feedbackEl.textContent = "Incorrect. This email appears to be legitimate.";
   }
 
   scoreEl.textContent = score;
