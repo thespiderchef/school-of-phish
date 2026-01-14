@@ -29,6 +29,7 @@ const emails = [
 
 // Score tracking
 let score = 0;
+let currentEmailIndex = 0;
 
 // Hardcoded email objects will be here, for now just one email
 const email1 = {
@@ -138,11 +139,11 @@ function renderEmail(email) {
 }
 
 // Initial render
-renderEmail(email1);
+renderEmail(emails[currentEmailIndex]);
 
 // button click handlers - for now, both will just increase the score, we'll work on logic later
 legitBtn.addEventListener("click", function () {
-  if (email1.isPhishing === false) {
+  if (emails[currentEmailIndex].isPhishing === false) {
     feedbackEl.textContent = "Correct! This email is legitimate.";
     score++;
   } else {
@@ -153,7 +154,7 @@ legitBtn.addEventListener("click", function () {
 });
 
 phishBtn.addEventListener("click", function () {
-  if (email1.isPhishing === true) {
+  if (emails[currentEmailIndex].isPhishing === true) {
     feedbackEl.textContent = "Correct! This email is a phishing attempt.";
     score++;
   } else {
@@ -161,5 +162,14 @@ phishBtn.addEventListener("click", function () {
   }
 
   scoreEl.textContent = score;
+});
+
+nextBtn.addEventListener("click", function () {
+  currentEmailIndex++;
+  if (currentEmailIndex >= emails.length) {
+    currentEmailIndex = 0; // Loop back to the first email
+  } 
+  renderEmail(emails[currentEmailIndex]);
+  feedbackEl.textContent = "Make your choice above to see if you're correct!";
 });
 
