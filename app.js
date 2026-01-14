@@ -14,17 +14,6 @@ const nextBtn = document.getElementById("btn-next"); // future use
 const feedbackEl = document.getElementById("feedback");
 const scoreEl = document.getElementById("score");
 
-//email array
-const emails = [
-  email1,
-  email2,
-  email3,
-  email4,
-  email5,
-  email6,
-  email7,
-  email8
-];
 
 
 // Score tracking
@@ -41,7 +30,7 @@ const email1 = {
     <p><a href="#">Reset Password</a></p>
     <p>Regards,<br>IT Support</p>
   `,    
-  isPhishing: true 
+  isPhishing: true, 
   explanation: "Creates urgency, uses a suspicious domain, and includes a link to reset the password."
 };
 const email2 = {
@@ -129,6 +118,18 @@ const email8 = {
   isPhishing: true,
   explanation: "Unsolicited winnings, pressure to act quickly, and request for a processing fee are strong scam indicators."
 };
+
+//email array
+const emails = [
+  email1,
+  email2,
+  email3,
+  email4,
+  email5,
+  email6,
+  email7,
+  email8
+];
 
 // Render function
 function renderEmail(email) {
