@@ -2,11 +2,19 @@
 
 console.log("The Phisherman: app.js connected");
 
+// DOM elements
 const emailFromEl = document.getElementById("email-from");
 const emailSubjectEl = document.getElementById("email-subject");
 const emailBodyEl = document.getElementById("email-body");
 
-// Hardcoded email object
+// interaction bits 
+const legitBtn = document.getElementById("btn-legit");
+const phishBtn = document.getElementById("btn-phish");
+const nextEmailBtn = document.getElementById("btn-next-email"); // future use
+const feedbackEl = document.getElementById("feedback");
+const scoreEl = document.getElementById("score");
+
+// Hardcoded email objects will be here, for now just one email
 const email1 = {
   from: "IT Support <it-support@university-helpdesk.com>",
   subject: "Urgent: Password Expiry Notice",
@@ -28,3 +36,17 @@ function renderEmail(email) {
 
 // Initial render
 renderEmail(email1);
+
+// button click handlers - for now, both will just increase the score, we'll work on logic later
+legitBtn.addEventListener("click", () => {
+  feedbackEl.textContent = "You chose: Legitimate Email.";
+  score++;
+  updateScore();
+});
+
+phishBtn.addEventListener("click", () => {
+  feedbackEl.textContent = "You chose: Phishing Email.";
+  score++;
+  updateScore();
+});
+
