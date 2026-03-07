@@ -50,7 +50,7 @@ const scoreEl = document.getElementById("score");
 let score = 0;
 let currentEmailIndex = 0;
 
-// Hardcoded email objects will be here, for now just one email
+// Hardcoded email objects will be here - each with from, subject, body, isPhishing boolean, and explanation for educational feedback
 const email1 = {
   from: "IT Support <it-support@university-helpdesk.com>",
   subject: "Urgent: Password Expiry Notice",
@@ -349,7 +349,7 @@ function renderEmail(email) {
 // Initial render
 renderEmail(emails[currentEmailIndex]);
 
-// button click handlers - for now, both will just increase the score, we'll work on logic later
+// button click handlers - checks if the user's choice matches the email's phishing status, updates feedback and score accordingly, then updates the score display
 legitBtn.addEventListener("click", function () {
   if (emails[currentEmailIndex].isPhishing === false) {
     feedbackEl.textContent = "Correct! This email is legitimate.";
