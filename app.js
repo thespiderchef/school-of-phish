@@ -29,7 +29,7 @@ navLinks.forEach(link => {
 
     // activate the clicked one
     const target = this.dataset.view;
-    document.getElementById("view-" + target).classList.add("active");
+    document.getElementById(target).classList.add("active");
     this.classList.add("active");
   });
 });
@@ -42,7 +42,7 @@ function handlePhishingLink(displayedUrl, realUrl) {
 // interaction bits 
 const legitBtn = document.getElementById("btn-legit");
 const phishBtn = document.getElementById("btn-phish");
-const nextBtn = document.getElementById("btn-next"); // future use
+const nextBtn = document.getElementById("btn-next"); 
 const feedbackEl = document.getElementById("feedback");
 const scoreEl = document.getElementById("score");
 

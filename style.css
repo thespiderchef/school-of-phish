@@ -1,15 +1,7 @@
-﻿/* rules to handle layout switching for sidebar links */
-.view {
-  display: none;
-}
-
-.view.active {
-  display: block;
-}
-/* ── FONTS ────────────────────────────────────────────────────── */
+﻿/* The School of Phish - style.css */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@400;600&display=swap');
 
-/* ── DARK MODE (default) ──────────────────────────────────────── */
+/* Dark mode - default */
 :root {
   --color-primary:    #00d4aa;
   --color-secondary:  #3a86ff;
@@ -22,7 +14,15 @@
   --color-border:     #30363d;
 }
 
-/* ── LIGHT MODE (toggle) ──────────────────────────────────────── */
+/* rules to handle layout switching for sidebar links */
+.view {
+  display: none;
+}
+.view.active {
+  display: block;
+}
+
+/* Light mode - toggled via JS adding .light to body */
 body.light {
   --color-primary:    #0969da;
   --color-secondary:  #0550ae;
@@ -35,16 +35,12 @@ body.light {
   --color-border:     #d0d7de;
 }
 
-
-
 /* layout scaffolding for the app */
-
 * {
   box-sizing: border-box;
 }
-
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'DM Sans', sans-serif;
   margin: 0;
   background: var(--color-bg);
   color: var(--color-text);
@@ -53,20 +49,19 @@ body {
 /* Top banner */
 #top-banner {
   padding: 1rem;
-  background: var(--color-primary);
-  color: var(--color-text);
+  background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
-
 #top-banner h1 {
   margin: 0;
-  color: var(--color-surface);
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--color-primary);
 }
-
 #top-banner h3 {
   margin: 0.25rem 0 0 0;
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+  color: var(--color-text-muted);
 }
 
 /* Layout */
@@ -82,25 +77,30 @@ body {
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
 }
-
 #side-menu ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
-
 #side-menu li {
   margin-bottom: 0.75rem;
 }
-
 #side-menu a {
+  display: block;
   text-decoration: none;
-  color: var(--color-secondary);
+  color: var(--color-text-muted);
   font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-left: 3px solid transparent;
+  border-radius: 4px;
 }
-
 #side-menu a:hover {
-  text-decoration: underline;
+  color: var(--color-text);
+  border-left-color: var(--color-primary);
+}
+#side-menu a.active {
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
 }
 
 /* Main content */
@@ -127,8 +127,8 @@ button {
   color: var(--color-surface);
   cursor: pointer;
   border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
 }
-
 button:hover {
   filter: brightness(0.95);
 }
