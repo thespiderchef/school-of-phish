@@ -1,11 +1,16 @@
-// The Phisherman
+// The School of Phish - Interactive Phishing Email Training App
 
-console.log("The Phisherman: app.js connected");
+console.log("The School of Phish app.js connected");
 
 // DOM elements
 const emailFromEl = document.getElementById("email-from");
 const emailSubjectEl = document.getElementById("email-subject");
 const emailBodyEl = document.getElementById("email-body");
+
+// helper function for sneaky links
+function handlePhishingLink(displayedUrl, realUrl) {
+  feedbackEl.textContent = `Careful! That link said "${displayedUrl}" but would have taken you to "${realUrl}" - a classic phishing trick.`;
+}
 
 // interaction bits 
 const legitBtn = document.getElementById("btn-legit");
@@ -25,12 +30,13 @@ const email1 = {
   body: `
     <p>Hello,</p>
     <p>Your password will expire today. Please reset it immediately to avoid losing access.</p>
-    <p><a href="#">Reset Password</a></p>
+    <p><a href="university-helpdesk.com/harvest-credentials" onclick="handlePhishingLink('students.plymouth.ac.uk/reset-password', 'university-helpdesk.com/harvest-credentials'); return false;">Reset Password</a></p>
     <p>Regards,<br>IT Support</p>
-  `,    
-  isPhishing: true, 
+  `,
+  isPhishing: true,
   explanation: "Creates urgency, uses a suspicious domain, and includes a link to reset the password."
 };
+
 const email2 = {
   from: "University IT Services <itservices@plymouth.ac.uk>",
   subject: "Scheduled Maintenance This Weekend",
@@ -38,29 +44,31 @@ const email2 = {
     <p>Hello,</p>
     <p>Please be aware that scheduled maintenance will take place this Saturday between 22:00 and 02:00.</p>
     <p>During this time, access to some systems may be intermittent.</p>
-    <p>Kind regards,<br>PlymouthUniversity IT Services</p>
+    <p>Kind regards,<br>Plymouth University IT Services</p>
   `,
   isPhishing: false,
   explanation: "Uses an official domain, provides advance notice, and does not request personal information."
 };
+
 const email3 = {
   from: "Parcel Service <delivery-update@parcel-tracking.co>",
-  subject: "Delivery Failed – Action Required",
+  subject: "Delivery Failed - Action Required",
   body: `
     <p>We were unable to deliver your parcel due to an address issue.</p>
     <p>Please confirm your details to reschedule delivery.</p>
-    <p><a href="#">Confirm Delivery</a></p>
+    <p><a href="parcel-tracking.co/confirm-details" onclick="handlePhishingLink('royalmail.com/redeliver', 'parcel-tracking.co/confirm-details'); return false;">Confirm Delivery</a></p>
   `,
   isPhishing: true,
   explanation: "Creates urgency and uses a vague sender domain with a suspicious link."
 };
+
 const email4 = {
   from: "Security Team <security@account-alerts.com>",
   subject: "Unusual Login Attempt Detected",
   body: `
     <p>We detected an unusual login attempt on your account.</p>
     <p>If this was not you, please secure your account immediately.</p>
-    <p><a href="#">Secure Account</a></p>
+    <p><a href="account-alerts.com/steal-credentials" onclick="handlePhishingLink('myaccount.google.com/security', 'account-alerts.com/steal-credentials'); return false;">Secure Account</a></p>
   `,
   isPhishing: true,
   explanation: "Generic greeting, pressure tactics, and non-official sender domain."
@@ -78,20 +86,22 @@ const email5 = {
   isPhishing: false,
   explanation: "No links demanding action and references an existing service the user already uses."
 };
+
 const email6 = {
   from: "Accounts Department <billing@payment-secure.net>",
-  subject: "Outstanding Balance – Immediate Payment Required",
+  subject: "Outstanding Balance - Immediate Payment Required",
   body: `
     <p>Your account shows an outstanding balance.</p>
     <p>Failure to pay within 24 hours will result in deletion of account.</p>
-    <p><a href="#">Make Payment</a></p>
+    <p><a href="payment-secure.net/steal-card-details" onclick="handlePhishingLink('secure-payments.com/pay-now', 'payment-secure.net/steal-card-details'); return false;">Make Payment</a></p>
   `,
   isPhishing: true,
   explanation: "Threatening language, short deadline, and generic sender identity."
 };
+
 const email7 = {
   from: "Prince Adewale <royal.funds.transfer@gmail.com>",
-  subject: "URGENT BUSINESS PROPOSAL – CONFIDENTIAL",
+  subject: "URGENT BUSINESS PROPOSAL - CONFIDENTIAL",
   body: `
     <p>Dear Beloved Friend,</p>
     <p>I am Prince Adewale, son of the late Minister of Finance.</p>
@@ -103,6 +113,7 @@ const email7 = {
   isPhishing: true,
   explanation: "Classic advance-fee scam using unrealistic promises, poor grammar, and requests for bank details."
 };
+
 const email8 = {
   from: "International Lottery <winnings@global-lotto-win.biz>",
   subject: "CONGRATULATIONS! YOU HAVE WON £1,250,000",
@@ -116,12 +127,13 @@ const email8 = {
   isPhishing: true,
   explanation: "Unsolicited winnings, pressure to act quickly, and request for a processing fee are strong scam indicators."
 };
+
 const email9 = {
   from: "Student Finance England <notifications@studentfinance.gov.uk>",
   subject: "Your Student Loan Payment Is Ready",
   body: `
     <p>Hello,</p>
-    <p>Your next student loan instalment has been processed and will arrive in your account within 3–5 working days.</p>
+    <p>Your next student loan instalment has been processed and will arrive in your account within 3-5 working days.</p>
     <p>No action is required. If you have any queries, visit the Student Finance portal directly.</p>
     <p>Kind regards,<br>Student Finance England</p>
   `,
@@ -136,7 +148,7 @@ const email10 = {
     <p>Dear Student,</p>
     <p>We have been unable to verify your loan details. Your next payment may be delayed.</p>
     <p>Please verify your information immediately to avoid disruption to your funding.</p>
-    <p><a href="#">Verify Now</a></p>
+    <p><a href="studentfinance-secure.co.uk/harvest-details" onclick="handlePhishingLink('studentfinance.gov.uk/verify', 'studentfinance-secure.co.uk/harvest-details'); return false;">Verify Now</a></p>
     <p>Student Finance Support Team</p>
   `,
   isPhishing: true,
@@ -159,12 +171,12 @@ const email11 = {
 
 const email12 = {
   from: "Spotify Billing <support@spotify-billing-centre.com>",
-  subject: "Your Payment Failed – Update Your Details",
+  subject: "Your Payment Failed - Update Your Details",
   body: `
     <p>Dear Valued Customer,</p>
     <p>We were unable to process your latest Spotify payment.</p>
     <p>To avoid losing access to your account, please update your billing information within 24 hours.</p>
-    <p><a href="#">Update Billing Details</a></p>
+    <p><a href="spotify-billing-centre.com/steal-card" onclick="handlePhishingLink('spotify.com/account/billing', 'spotify-billing-centre.com/steal-card'); return false;">Update Billing Details</a></p>
   `,
   isPhishing: true,
   explanation: "Fake Spotify domain, generic greeting, artificial urgency, and a link to harvest payment details."
@@ -172,7 +184,7 @@ const email12 = {
 
 const email13 = {
   from: "DLE Support <dle-support@plymouth.ac.uk>",
-  subject: "Planned DLE Downtime – Friday Evening",
+  subject: "Planned DLE Downtime - Friday Evening",
   body: `
     <p>Hello,</p>
     <p>Please note that the DLE will be unavailable on Friday between 18:00 and 20:00 for scheduled maintenance.</p>
@@ -190,7 +202,7 @@ const email14 = {
     <p>Dear User,</p>
     <p>Your Microsoft account has been temporarily locked due to suspicious activity.</p>
     <p>Click below to verify your identity and restore access.</p>
-    <p><a href="#">Unlock My Account</a></p>
+    <p><a href="microsofft-account.com/steal-credentials" onclick="handlePhishingLink('login.microsoft.com/verify-identity', 'microsofft-account.com/steal-credentials'); return false;">Unlock My Account</a></p>
     <p>Microsoft Security Team</p>
   `,
   isPhishing: true,
@@ -202,7 +214,7 @@ const email15 = {
   subject: "Your pull request was merged",
   body: `
     <p>Hi,</p>
-    <p>Your pull request <strong>#42 – Fix navigation bug</strong> was merged into main by a collaborator.</p>
+    <p>Your pull request <strong>#42 - Fix navigation bug</strong> was merged into main by a collaborator.</p>
     <p>You can view the changes in your repository.</p>
     <p>— The GitHub Team</p>
   `,
@@ -217,7 +229,7 @@ const email16 = {
     <p>Dear Customer,</p>
     <p>We have suspended your PayPal account due to a violation of our terms of service.</p>
     <p>To appeal this decision and restore access, you must verify your identity within 48 hours.</p>
-    <p><a href="#">Restore Account</a></p>
+    <p><a href="paypal-customer-support.org/steal-credentials" onclick="handlePhishingLink('paypal.com/restore-account', 'paypal-customer-support.org/steal-credentials'); return false;">Restore Account</a></p>
   `,
   isPhishing: true,
   explanation: "PayPal's real domain is paypal.com — this uses a lookalike. Suspension threats are a high-pressure tactic designed to bypass critical thinking."
@@ -243,7 +255,7 @@ const email18 = {
     <p>Dear Amazon Customer,</p>
     <p>We detected a sign-in to your account from an unrecognised device in Romania.</p>
     <p>If this was not you, your account may be compromised. Click below immediately to secure it.</p>
-    <p><a href="#">Secure My Account</a></p>
+    <p><a href="amazon-secure-login.net/steal-credentials" onclick="handlePhishingLink('amazon.co.uk/secure-your-account', 'amazon-secure-login.net/steal-credentials'); return false;">Secure My Account</a></p>
   `,
   isPhishing: true,
   explanation: "Non-Amazon domain, fear-inducing location detail, and immediate action demand are hallmarks of a phishing attempt."
@@ -269,7 +281,7 @@ const email20 = {
     <p>Dear Patient,</p>
     <p>As part of an NHS system upgrade, all patients are required to re-verify their details.</p>
     <p>Failure to do so within 7 days will result in your records being archived and inaccessible to your GP.</p>
-    <p><a href="#">Verify My Details</a></p>
+    <p><a href="nhs-patient-portal.co/harvest-data" onclick="handlePhishingLink('nhs.uk/verify-patient-details', 'nhs-patient-portal.co/harvest-data'); return false;">Verify My Details</a></p>
   `,
   isPhishing: true,
   explanation: "The NHS does not contact patients this way. The domain is not nhs.uk, and threatening to archive medical records is a manipulation tactic targeting vulnerable users."
@@ -284,7 +296,19 @@ const emails = [
   email5,
   email6,
   email7,
-  email8
+  email8,
+  email9,
+  email10,
+  email11,
+  email12,
+  email13,
+  email14,
+  email15,
+  email16,
+  email17,
+  email18,
+  email19,
+  email20 
 ];
 
 // Render function
