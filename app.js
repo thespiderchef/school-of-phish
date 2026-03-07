@@ -7,6 +7,14 @@ const emailFromEl = document.getElementById("email-from");
 const emailSubjectEl = document.getElementById("email-subject");
 const emailBodyEl = document.getElementById("email-body");
 
+// theme toggle - i want it dark mode by default, so the toggle will just add a light class to switch it to light mode
+const body = document.body;
+const toggleBtn = document.getElementById("theme-toggle");
+
+toggleBtn.addEventListener("click", function() {
+  body.classList.toggle("light");
+});
+
 // function to handle sidebar links
 const navLinks = document.querySelectorAll(".nav-link");
 const views = document.querySelectorAll(".view");

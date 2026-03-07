@@ -1,44 +1,4 @@
-﻿/* The Phisherman - Nautical Theme Variables */
-
-/* Day Mode (default) */
-:root {
-  /* Core */
-  --color-primary: #0B3C5D;      /* Navy */
-  --color-secondary: #1D7FA3;    /* Sea Blue */
-
-  /* Surfaces */
-  --color-bg: #F4F7FA;           /* Off-White */
-  --color-surface: #FFFFFF;      /* White */
-
-  /* Text */
-  --color-text: #2B2E34;         /* Deep Slate */
-  --color-text-muted: #4B5563;
-
-  /* Status */
-  --color-success: #2E8B57;      /* Sea Green */
-  --color-danger: #C0392B;       /* Signal Red */
-
-  /* Borders */
-  --color-border: #D7DEE7;
-}
-
-/* Night Mode */
-body.dark {
-  --color-primary: #081C2D;      /* Deep Navy */
-  --color-secondary: #3A6EA5;    /* Steel Blue */
-
-  --color-bg: #0F172A;           /* Almost Black */
-  --color-surface: #1E293B;      /* Dark Slate */
-
-  --color-text: #E5E7EB;         /* Soft White */
-  --color-text-muted: #CBD5E1;
-
-  --color-success: #3CB371;      /* Muted Green */
-  --color-danger: #E06666;       /* Muted Red */
-
-  --color-border: #334155;
-}
-/* rules to handle layout switching for sidebar links */
+﻿/* rules to handle layout switching for sidebar links */
 .view {
   display: none;
 }
@@ -46,6 +6,35 @@ body.dark {
 .view.active {
   display: block;
 }
+/* ── FONTS ────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@400;600&display=swap');
+
+/* ── DARK MODE (default) ──────────────────────────────────────── */
+:root {
+  --color-primary:    #00d4aa;
+  --color-secondary:  #3a86ff;
+  --color-bg:         #0d1117;
+  --color-surface:    #161b22;
+  --color-text:       #e6edf3;
+  --color-text-muted: #7d8590;
+  --color-success:    #3fb950;
+  --color-danger:     #f85149;
+  --color-border:     #30363d;
+}
+
+/* ── LIGHT MODE (toggle) ──────────────────────────────────────── */
+body.light {
+  --color-primary:    #0969da;
+  --color-secondary:  #0550ae;
+  --color-bg:         #f0f4f8;
+  --color-surface:    #ffffff;
+  --color-text:       #1f2328;
+  --color-text-muted: #656d76;
+  --color-success:    #1a7f37;
+  --color-danger:     #d1242f;
+  --color-border:     #d0d7de;
+}
+
 
 
 /* layout scaffolding for the app */
