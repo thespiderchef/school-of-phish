@@ -29,7 +29,7 @@ navLinks.forEach(link => {
 
     // activate the clicked one
     const target = this.dataset.view;
-    document.getElementById(target).classList.add("active");
+    document.getElementById("view-" + target).classList.add("active");
     this.classList.add("active");
   });
 });
