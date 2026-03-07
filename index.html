@@ -3,64 +3,52 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>The Phisherman</title>
-
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark">
-    <div id ="app">
+<body class="light">
    
     <header id="top-banner">
         <div class="brand">
-        <h1>The Phisherman</h1>
-    <h3>Learning to spot phishing emails</h3>
+            <h1>The Phisherman</h1>
+            <h3>Learning to spot phishing emails</h3>
         </div>
     </header>
     
-    <div id ="layout">
-        <nav id=""side-menu">
+    <div id="layout">
+        <nav id="side-menu">
             <ul>
                 <li><a href="#">Training</a></li>
                 <li><a href="#">Phishing Tips</a></li>
                 <li><a href="#">About</a></li>
             </ul>
         </nav>
-
-    <main id="main-content">  
-        <section id="email-container">  
-            <h2>Email Preview</h2>
-        
-            <div id="email">
-                <p><strong>From:</strong> <span id="email-from">email@domain.com</span></p>
-                <p><strong>Subject:</strong> <span id="email-subject">Email Subject Here</span></p>
-
-                <div id="email-body">
-                    <p>Email body content goes here...</p>
+        <main id="main-content">  
+            <section id="email-container">  
+                <h2>Email Preview</h2>
+                <div id="email">
+                    <p><strong>From:</strong> <span id="email-from">email@domain.com</span></p>
+                    <p><strong>Subject:</strong> <span id="email-subject">Email Subject Here</span></p>
+                    <div id="email-body">
+                        <p>Email body content goes here...</p>
+                    </div>
                 </div>
-            </div>
-        </section>
-
-        <section id="actions">  
-            <button id="btn-legit">Mark as Legitimate</button>
-            <button id="btn-phish">Mark as Phishing</button>
-            <button id="btn-next">Next Email</button>
-        </section>
-
-        <section id="feedback">     
-         <p id="feedback-message">Make your choice above to see if you're correct!</p>
-        </section>
-    
-
-    <footer>        
-         <p>Score: <span id="score">0</span></p>    
-    </footer>
-    </main>
-
+            </section>
+            <section id="actions">  
+                <button id="btn-legit">Mark as Legitimate</button>
+                <button id="btn-phish">Mark as Phishing</button>
+                <button id="btn-next">Next Email</button>
+            </section>
+            <section id="feedback">     
+                <p id="feedback-message">Make your choice above to see if you're correct!</p>
+            </section>
+        
+            <footer>        
+                <p>Score: <span id="score">0</span></p>    
+            </footer>
+        </main>
     </div>
-</div>
 
-<script src="app.js"></script>
-
+    <script src="app.js"></script>
 </body>
 </html>

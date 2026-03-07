@@ -14,8 +14,6 @@ const nextBtn = document.getElementById("btn-next"); // future use
 const feedbackEl = document.getElementById("feedback");
 const scoreEl = document.getElementById("score");
 
-
-
 // Score tracking
 let score = 0;
 let currentEmailIndex = 0;
@@ -117,6 +115,164 @@ const email8 = {
   `,
   isPhishing: true,
   explanation: "Unsolicited winnings, pressure to act quickly, and request for a processing fee are strong scam indicators."
+};
+const email9 = {
+  from: "Student Finance England <notifications@studentfinance.gov.uk>",
+  subject: "Your Student Loan Payment Is Ready",
+  body: `
+    <p>Hello,</p>
+    <p>Your next student loan instalment has been processed and will arrive in your account within 3–5 working days.</p>
+    <p>No action is required. If you have any queries, visit the Student Finance portal directly.</p>
+    <p>Kind regards,<br>Student Finance England</p>
+  `,
+  isPhishing: false,
+  explanation: "Uses an official .gov.uk domain, requires no action, and contains no suspicious links."
+};
+
+const email10 = {
+  from: "Student Finance <loan-update@studentfinance-secure.co.uk>",
+  subject: "Action Required: Verify Your Loan Details",
+  body: `
+    <p>Dear Student,</p>
+    <p>We have been unable to verify your loan details. Your next payment may be delayed.</p>
+    <p>Please verify your information immediately to avoid disruption to your funding.</p>
+    <p><a href="#">Verify Now</a></p>
+    <p>Student Finance Support Team</p>
+  `,
+  isPhishing: true,
+  explanation: "Impersonates Student Finance but uses a non-government domain. Creates financial anxiety to pressure the user into clicking."
+};
+
+const email11 = {
+  from: "Spotify <no-reply@spotify.com>",
+  subject: "Your receipt from Spotify",
+  body: `
+    <p>Hi,</p>
+    <p>Thanks for your payment. Your Spotify Premium subscription has been renewed for another month.</p>
+    <p>Amount charged: £10.99</p>
+    <p>If you did not authorise this, you can manage your subscription in your account settings.</p>
+    <p>The Spotify Team</p>
+  `,
+  isPhishing: false,
+  explanation: "Comes from an official Spotify domain, contains no urgent links demanding credentials, and refers to an expected transaction."
+};
+
+const email12 = {
+  from: "Spotify Billing <support@spotify-billing-centre.com>",
+  subject: "Your Payment Failed – Update Your Details",
+  body: `
+    <p>Dear Valued Customer,</p>
+    <p>We were unable to process your latest Spotify payment.</p>
+    <p>To avoid losing access to your account, please update your billing information within 24 hours.</p>
+    <p><a href="#">Update Billing Details</a></p>
+  `,
+  isPhishing: true,
+  explanation: "Fake Spotify domain, generic greeting, artificial urgency, and a link to harvest payment details."
+};
+
+const email13 = {
+  from: "DLE Support <dle-support@plymouth.ac.uk>",
+  subject: "Planned DLE Downtime – Friday Evening",
+  body: `
+    <p>Hello,</p>
+    <p>Please note that the DLE will be unavailable on Friday between 18:00 and 20:00 for scheduled maintenance.</p>
+    <p>We recommend downloading any materials you need before this time.</p>
+    <p>Apologies for any inconvenience.<br>DLE Support Team</p>
+  `,
+  isPhishing: false,
+  explanation: "Official university domain, no action required, and simply informs about a routine maintenance window."
+};
+
+const email14 = {
+  from: "Microsoft Account <security@microsofft-account.com>",
+  subject: "Your Microsoft Account Has Been Locked",
+  body: `
+    <p>Dear User,</p>
+    <p>Your Microsoft account has been temporarily locked due to suspicious activity.</p>
+    <p>Click below to verify your identity and restore access.</p>
+    <p><a href="#">Unlock My Account</a></p>
+    <p>Microsoft Security Team</p>
+  `,
+  isPhishing: true,
+  explanation: "Sender domain has a double 'f' in 'microsofft' — a classic typosquat. Locking accounts to create panic is a common phishing tactic."
+};
+
+const email15 = {
+  from: "GitHub <noreply@github.com>",
+  subject: "Your pull request was merged",
+  body: `
+    <p>Hi,</p>
+    <p>Your pull request <strong>#42 – Fix navigation bug</strong> was merged into main by a collaborator.</p>
+    <p>You can view the changes in your repository.</p>
+    <p>— The GitHub Team</p>
+  `,
+  isPhishing: false,
+  explanation: "Comes from GitHub's official domain and references a specific, expected event with no request for credentials."
+};
+
+const email16 = {
+  from: "PayPal <service@paypal-customer-support.org>",
+  subject: "Your Account Has Been Suspended",
+  body: `
+    <p>Dear Customer,</p>
+    <p>We have suspended your PayPal account due to a violation of our terms of service.</p>
+    <p>To appeal this decision and restore access, you must verify your identity within 48 hours.</p>
+    <p><a href="#">Restore Account</a></p>
+  `,
+  isPhishing: true,
+  explanation: "PayPal's real domain is paypal.com — this uses a lookalike. Suspension threats are a high-pressure tactic designed to bypass critical thinking."
+};
+
+const email17 = {
+  from: "Amazon <auto-confirm@amazon.co.uk>",
+  subject: "Your order has been dispatched",
+  body: `
+    <p>Hello,</p>
+    <p>Your order #204-8371920-4859201 has been dispatched and is expected to arrive tomorrow.</p>
+    <p>You can track your parcel using the link in your Amazon account.</p>
+    <p>Thank you for shopping with us.</p>
+  `,
+  isPhishing: false,
+  explanation: "Uses Amazon's real domain, references a specific order number, and directs the user to their own account rather than an external link."
+};
+
+const email18 = {
+  from: "Amazon Security <account-alert@amazon-secure-login.net>",
+  subject: "Suspicious Sign-In Detected On Your Account",
+  body: `
+    <p>Dear Amazon Customer,</p>
+    <p>We detected a sign-in to your account from an unrecognised device in Romania.</p>
+    <p>If this was not you, your account may be compromised. Click below immediately to secure it.</p>
+    <p><a href="#">Secure My Account</a></p>
+  `,
+  isPhishing: true,
+  explanation: "Non-Amazon domain, fear-inducing location detail, and immediate action demand are hallmarks of a phishing attempt."
+};
+
+const email19 = {
+  from: "Careers Service <careers@plymouth.ac.uk>",
+  subject: "New Graduate Opportunities Posted This Week",
+  body: `
+    <p>Hi,</p>
+    <p>Several new graduate scheme opportunities have been added to the Careers portal this week, including roles in cybersecurity, software engineering, and data analysis.</p>
+    <p>Log in to the Careers portal to browse and apply.</p>
+    <p>Best wishes,<br>University of Plymouth Careers Service</p>
+  `,
+  isPhishing: false,
+  explanation: "Official university domain, no suspicious links, and references a service students would expect to hear from."
+};
+
+const email20 = {
+  from: "NHS Digital <health-verify@nhs-patient-portal.co>",
+  subject: "Your NHS Records Require Verification",
+  body: `
+    <p>Dear Patient,</p>
+    <p>As part of an NHS system upgrade, all patients are required to re-verify their details.</p>
+    <p>Failure to do so within 7 days will result in your records being archived and inaccessible to your GP.</p>
+    <p><a href="#">Verify My Details</a></p>
+  `,
+  isPhishing: true,
+  explanation: "The NHS does not contact patients this way. The domain is not nhs.uk, and threatening to archive medical records is a manipulation tactic targeting vulnerable users."
 };
 
 //email array
