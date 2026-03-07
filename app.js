@@ -75,7 +75,7 @@ const email3 = {
   body: `
     <p>We were unable to deliver your parcel due to an address issue.</p>
     <p>Please confirm your details to reschedule delivery.</p>
-    <p><a href="parcel-tracking.co/confirm-details" onclick="handlePhishingLink('royalmail.com/redeliver', 'parcel-tracking.co/confirm-details'); return false;">Confirm Delivery</a></p>
+    <p><a href="parcel-tracking.co/steal-details" onclick="handlePhishingLink('royalmail.com/redeliver', 'parcel-tracking.co/steal-details'); return false;">Confirm Delivery</a></p>
   `,
   isPhishing: true,
   explanation: "Creates urgency and uses a vague sender domain with a suspicious link."

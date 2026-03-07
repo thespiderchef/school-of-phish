@@ -24,47 +24,55 @@
             </ul>
         </nav>
         <main id="main-content">
-            <section id="training" class="view active">  
-                <h2>Phishing Email Training</h2>
-                <p>Welcome to The School of Phish! In this training module, you'll be presented with a series of emails. Your task is to determine whether each email is legitimate or a phishing attempt. Click the buttons below each email to make your choice and receive immediate feedback on your decision. Let's get started and sharpen your phishing detection skills!</p>  
-            <section id="email-container">  
-                <h2>Email Preview</h2>
-                <div id="email">
-                    <p><strong>From:</strong> <span id="email-from">email@domain.com</span></p>
-                    <p><strong>Subject:</strong> <span id="email-subject">Email Subject Here</span></p>
-                    <div id="email-body">
-                        <p>Email body content goes here...</p>
-                    </div>
-                </div>
-            </section>
-            <section id="actions">  
-                <button id="btn-legit">Mark as Legitimate</button>
-                <button id="btn-phish">Mark as Phishing</button>
-                <button id="btn-next">Next Email</button>
-            </section>
-            <section id="feedback">     
-                <p id="feedback-message">Make your choice above to see if you're correct!</p>
-            </section>
-            </section>
-            <section id="tips" class="view">  
-                <h2>Phishing Detection Tips</h2>
-                <ul>
-                    <li>Check the sender's email address for legitimacy.</li>
-                    <li>Look for generic greetings instead of personalized ones.</li>
-                    <li>Be cautious of urgent language prompting immediate action.</li>
-                    <li>Hover over links to see the actual URL before clicking.</li>
-                    <li>Verify the domain name for any misspellings or inconsistencies.</li>
-                </ul>
-            </section>
-            <section id="about" class="view">
-                <h2>About The School of Phish</h2>
-                <p>The School of Phish is an interactive training application designed to help users identify and avoid phishing emails. By simulating real-world phishing scenarios, we aim to educate users on the common tactics used by cybercriminals and empower them to protect their personal information online.</p>
-            </section>
-            
-            <footer>        
-                <p>Score: <span id="score">0</span></p>    
-            </footer>
-        </main>
+
+  <section id="view-training" class="view active">
+    <h2>Phishing Email Training</h2>
+    <p>Welcome to The School of Phish! In this training module, you'll be presented with a series of emails. Your task is to determine whether each email is legitimate or a phishing attempt. Click the buttons below each email to make your choice and receive immediate feedback on your decision. Let's get started and sharpen your phishing detection skills!</p>
+
+    <div id="email-container">
+      <h2>Email Preview</h2>
+      <div id="email">
+        <p><strong>From:</strong> <span id="email-from">email@domain.com</span></p>
+        <p><strong>Subject:</strong> <span id="email-subject">Email Subject Here</span></p>
+        <div id="email-body">
+          <p>Email body content goes here...</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="actions">
+      <button id="btn-legit">Mark as Legitimate</button>
+      <button id="btn-phish">Mark as Phishing</button>
+      <button id="btn-next">Next Email</button>
+    </div>
+
+    <div id="feedback">
+      <p id="feedback-message">Make your choice above to see if you're correct!</p>
+    </div>
+
+    <footer>
+      <p>Score: <span id="score">0</span></p>
+    </footer>
+
+  </section>
+
+  <section id="view-tips" class="view">
+    <h2>Phishing Detection Tips</h2>
+    <ul>
+      <li>Check the sender's email address for legitimacy.</li>
+      <li>Look for generic greetings instead of personalized ones.</li>
+      <li>Be cautious of urgent language prompting immediate action.</li>
+      <li>Hover over links to see the actual URL before clicking.</li>
+      <li>Verify the domain name for any misspellings or inconsistencies.</li>
+    </ul>
+  </section>
+
+  <section id="view-about" class="view">
+    <h2>About The School of Phish</h2>
+    <p>The School of Phish is an interactive training application designed to help users identify and avoid phishing emails. By simulating real-world phishing scenarios, we aim to educate users on the common tactics used by cybercriminals and empower them to protect their personal information online.</p>
+  </section>
+
+</main>
     </div>
 
     <script src="app.js"></script>
