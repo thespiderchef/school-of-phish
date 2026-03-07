@@ -38,6 +38,15 @@ body.dark {
 
   --color-border: #334155;
 }
+/* rules to handle layout switching for sidebar links */
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
+}
+
 
 /* layout scaffolding for the app */
 

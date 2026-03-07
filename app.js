@@ -7,6 +7,25 @@ const emailFromEl = document.getElementById("email-from");
 const emailSubjectEl = document.getElementById("email-subject");
 const emailBodyEl = document.getElementById("email-body");
 
+// function to handle sidebar links
+const navLinks = document.querySelectorAll(".nav-link");
+const views = document.querySelectorAll(".view");
+
+navLinks.forEach(link => {
+  link.addEventListener("click", function(e) {
+    e.preventDefault();
+
+    // remove active from all views and links
+    views.forEach(v => v.classList.remove("active"));
+    navLinks.forEach(l => l.classList.remove("active"));
+
+    // activate the clicked one
+    const target = this.dataset.view;
+    document.getElementById("view-" + target).classList.add("active");
+    this.classList.add("active");
+  });
+});
+
 // helper function for sneaky links
 function handlePhishingLink(displayedUrl, realUrl) {
   feedbackEl.textContent = `Careful! That link said "${displayedUrl}" but would have taken you to "${realUrl}" - a classic phishing trick.`;
