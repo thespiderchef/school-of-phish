@@ -2,21 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- I added this meta tag to ensure that the website is responsive and displays correctly on different devices, such as smartphones and tablets. It sets the viewport to match the device's width and initial zoom level, improving the overall user experience across various screen sizes. -->
     <title>The School of Phish</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css"> <!-- I linked an external CSS file to keep the styling separate from the HTML structure, which promotes better organization and maintainability of the code. This allows for easier updates to the design without having to modify the HTML, and it also helps to keep the HTML file cleaner and more focused on the content. -->
 </head>
 <body>
    
 <header id="top-banner">
   <div class="brand">
-    <h1>The School of Phish</h1>
+    <h1>The School of Phish</h1>  <!-- Changed the name from Phisherman to The School of Phish, still a pun, makes more sense -->
     <h3>Learning to spot phishing emails</h3>
   </div>
-  <button id="theme-toggle">Change Theme</button>
+  <button id="theme-toggle">Change Theme</button> <!-- I added a theme toggle button to allow users to switch between light and dark modes, enhancing accessibility and user experience. This feature caters to different user preferences and can help reduce eye strain in various lighting conditions. -->
 </header>
     
-    <div id="layout">
+    <div id="layout"> <!-- I added this wrapper div to create a flexible layout structure that can accommodate both the side menu and the main content area. This allows for better organization of the page elements and makes it easier to apply the SPA functionality. -->
         <nav id="side-menu">
                 <ul>
                 <li><a href="#" class="nav-link active" data-view="training">Training</a></li>
@@ -32,7 +32,7 @@
 
     <div id="email-container">
       <h2>Email Preview</h2>
-      <div id="email">
+      <div id="email"> <!-- I added this section to provide users with a clear and structured layout for the email content. By separating the email preview into its own container, it allows for better styling and organization of the email elements (sender, subject, body), making it easier for users to read and analyze the email before making their decision. -->
         <p><strong>From:</strong> <span id="email-from">email@domain.com</span></p>
         <p><strong>Subject:</strong> <span id="email-subject">Email Subject Here</span></p>
         <div id="email-body">
@@ -40,86 +40,72 @@
         </div>
       </div>
     </div>
-
-    <div id="actions">
+    <div id="actions"> <!-- I added this section to provide users with clear and accessible buttons for interacting with the training module. By placing the action buttons directly below the email preview, it creates a natural flow for users to read the email and then immediately make their choice, enhancing the overall user experience and engagement with the training content. -->
       <button id="btn-legit">Mark as Legitimate</button>
       <button id="btn-phish">Mark as Phishing</button>
       <button id="btn-next">Next Email</button>
     </div>
-
-    <div id="feedback">
+    <div id="feedback"> <!-- I added this section to provide users with immediate feedback on their choices, which is crucial for effective learning. By explaining why an email is legitimate or a phishing attempt, users can understand the specific indicators they should look for in real-life scenarios, reinforcing their learning and helping them apply these skills outside of the training environment. -->
       <p id="feedback-message">Make your choice above to see if you're correct!</p>
     </div>
-
-    <footer>
+    <footer> <!-- I added a score display in the footer to provide users with a sense of progression and achievement as they go through the training. This can help motivate them to continue learning and improving their phishing detection skills, as they can see their score increase with each correct answer. -->
       <p>Score: <span id="score">0</span></p>
     </footer>
-
   </section>
 
 <section id="view-tips" class="view">
   <h2>Phishing Detection Tips</h2>
   <p>Phishing emails are designed to trick you into giving away personal information or clicking malicious links. Here are the key things to look out for.</p>
 
-  <div class="tip-card">
+  <div class="tip-card"> <!-- I added this section to provide users with actionable advice on how to identify phishing emails. By breaking down the tips into clear, digestible points, it helps users understand the common tactics used by phishers and empowers them to make informed decisions when they encounter suspicious emails. -->
     <h3>Check the sender's address</h3>
     <p>Phishers often use domains that look legitimate at a glance. Look closely; <strong>paypa1.com</strong> is not the same as <strong>paypal.com</strong>. Legitimate organisations will always email you from their official domain.</p>
   </div>
-
   <div class="tip-card">
     <h3>Watch for generic greetings</h3>
     <p>Emails that start with "Dear Customer" or "Dear User" instead of your actual name are a red flag. Companies you have an account with will usually address you directly.</p>
   </div>
-
   <div class="tip-card">
     <h3>Be wary of urgency</h3>
     <p>Phrases like "act immediately", "your account will be suspended", or "you have 24 hours" are designed to panic you into clicking before you think. Legitimate organisations rarely demand instant action via email.</p>
   </div>
-
   <div class="tip-card">
     <h3>Hover over links before clicking</h3>
     <p>The text of a link and where it actually goes can be completely different. Always hover first and check the URL in your browser's status bar; if it looks unfamiliar or doesn't match the supposed sender, don't click it.</p>
   </div>
-
   <div class="tip-card">
     <h3>Scrutinise the domain name</h3>
     <p>Look for subtle misspellings, extra words, or unusual extensions. <strong>microsoft-support.net</strong>, <strong>amazonsecurity.co</strong>, and <strong>nhs-patient-portal.co</strong> are all fake; the real domains are <strong>microsoft.com</strong>, <strong>amazon.co.uk</strong>, and <strong>nhs.uk</strong>.</p>
   </div>
-
   <div class="tip-card">
     <h3>Be suspicious of unexpected attachments</h3>
     <p>Unsolicited attachments; especially .zip, .exe, or Office files, can contain malware. If you weren't expecting a file, don't open it, even if the sender looks familiar.</p>
   </div>
-
   <div class="tip-card">
     <h3>HTTPS doesn't mean safe</h3>
     <p>A padlock icon in your browser just means the connection is encrypted; it says nothing about whether the site itself is malicious. Phishing sites can and do use HTTPS.</p>
   </div>
-
 </section>
 
 <section id="view-about" class="view">
   <h2>About The School of Phish</h2>
-
-  <div class="about-card">
+  <div class="about-card"> <!-- I added this section to give users insight into the motivation and background of the project, which can help build trust and connection. It also highlights the developer's expertise and real-world experience, reinforcing the credibility of the training content. -->
     <h3>The Project</h3>
     <p>The School of Phish is an interactive phishing awareness trainer built as a single page application. It presents realistic email scenarios and challenges you to identify phishing attempts from legitimate correspondence; with the goal of making you a harder target for cybercriminals.</p>
     <p>Each scenario is based on real phishing tactics and provides feedback explaining the tell-tale signs in the email, so you learn not just whether you were right, but why.</p>
   </div>
-
-  <div class="about-card">
+  <div class="about-card"> 
     <h3>The Developer</h3>
     <p>Built by Sam Vincent; an IT professional and Computer Science (Cybersecurity) undergraduate at the University of Plymouth. With over six years of experience across IT support, logistics, and regulated environments including the NHS and Ministry of Defence, Sam brings a practical, security-aware perspective to everything he builds.</p>
     <p>As a dad of two, the motivation behind this project goes beyond the academic. Phishing remains one of the most common and damaging attack vectors in cybersecurity; building tools that help everyday people recognise and resist it is exactly the kind of work that matters.</p>
     <p>The School of Phish was developed as part of COMP1004 Computing Practice, using vanilla HTML, CSS, and JavaScript.</p>
   </div>
-
 </section>
-
 </main>
-    </div>
-
-    <script src="app.js"></script>
+</div>
+<!-- JavaScript file for interactivity -->
+<script src="app.js"></script>
+<!-- Footer with copyright and contact information -->
 <footer id="site-footer">
   <p>© 2025 Sam Vincent · <a href="https://www.linkedin.com/in/sam-vincent-730ab6387/" target="_blank">LinkedIn</a> · Open source student project</p>
 </footer>

@@ -1,6 +1,14 @@
 ﻿/* The School of Phish - style.css */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@400;600&display=swap');
 
+/* I chose to use CSS variables for theming as it allows for easy maintenance and scalability. 
+   By defining colors as variables, we can easily switch themes by changing the variable values in one place, rather than updating individual styles throughout the CSS. 
+   This approach also keeps our styles organized and makes it straightforward to add more themes in the future if desired.
+*/
+/* I also changed the color scheme to be more vibrant and modern, using a combination of teal and blue for the primary and secondary colors, with a dark background for better contrast. 
+   This not only enhances the visual appeal but also improves readability and user experience, especially in low-light environments.
+*/
+
 /* Dark mode - default */
 :root {
   --color-primary:    #00d4aa;
@@ -23,6 +31,7 @@
 }
 
 /* Light mode - toggled via JS adding .light to body */
+
 body.light {
   --color-primary:    #0969da;
   --color-secondary:  #0550ae;
@@ -70,7 +79,7 @@ body {
   min-height: calc(100vh - 90px);
 }
 
-/* Sidebar */
+/* Sidebar - i used padding to create space and margins to create vertical spacing */
 #side-menu {
   width: 220px;
   padding: 1rem;
@@ -128,6 +137,8 @@ button {
   cursor: pointer;
   border-radius: 6px;
   font-family: 'DM Sans', sans-serif;
+/* add a smooth transition for hover effects */
+  transition: filter 0.2s ease;
 }
 button:hover {
   filter: brightness(0.95);
@@ -140,7 +151,7 @@ button:hover {
   padding: 0.75rem 1rem;
   border-radius: 8px;
 }
-/* Site-wide footer */
+/* Site-wide footer - added later to include copyright information */
 #site-footer {
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--color-border);
