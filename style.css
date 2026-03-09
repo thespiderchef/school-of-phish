@@ -1,16 +1,50 @@
 ﻿/* The School of Phish - style.css */
+
+/*  ============================================================
+    JUSTIFICATION FOR COMMENT FORMAT
+    ============================================================
+    After typing up my report I felt I had a lot of design decisions that I wanted
+    to explain in more detail, and I thought it would be interesting to share the 
+    rationale behind my choices for anyone interested in the design process. I also
+    wanted to demonstrate my ability to write clear, detailed documentation and justify
+    design decisions with reference to user needs and best practices. I hope this
+    provides some insight into my thinking and approach to front-end development! <3 XD 
+    ============================================================ */
+
+/* Google Fonts import must appear first in the stylesheet before any rules.
+   Share Tech Mono was chosen for headings as it is a monospace font with a 
+   terminal/hacker aesthetic that fits the cybersecurity theme of the application.
+   DM Sans was chosen for body text as it is a clean, modern sans-serif that is 
+   highly legible at small sizes and works well alongside a monospace display font. */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@400;600&display=swap');
 
-/* I chose to use CSS variables for theming as it allows for easy maintenance and scalability. 
-   By defining colors as variables, we can easily switch themes by changing the variable values in one place, rather than updating individual styles throughout the CSS. 
-   This approach also keeps our styles organized and makes it straightforward to add more themes in the future if desired.
-*/
-/* I also changed the color scheme to be more vibrant and modern, using a combination of teal and blue for the primary and secondary colors, with a dark background for better contrast. 
-   This not only enhances the visual appeal but also improves readability and user experience, especially in low-light environments.
-*/
+/* ============================================================
+   CSS CUSTOM PROPERTIES (VARIABLES)
+   ============================================================
+   CSS variables are used throughout this stylesheet rather than 
+   hardcoded colour values. This means the entire colour scheme 
+   can be switched by redefining a small set of variables in one 
+   place, rather than hunting through the whole file for individual 
+   hex values. It also makes it straightforward to add additional 
+   themes in the future, such as the potential Dyslexia mode.
+   ============================================================ */
 
-/* Dark mode - default */
+/* Dark mode - set as the default theme on :root so it applies 
+   globally without any class being present on the body.
+   Dark mode was chosen as the default because the application is 
+   aimed at a technically aware audience who tend to prefer dark 
+   interfaces, and because dark backgrounds reduce eye strain in 
+   low-light environments which is common during evening study sessions. */
 :root {
+  /* Colour palette designed around a dark terminal aesthetic appropriate for a 
+     cybersecurity application. Teal (#00d4aa) was chosen as the primary accent 
+     as it has strong contrast against the dark background and is commonly 
+     associated with hacker culture. Blue (#3a86ff) as secondary provides 
+     clear distinction for interactive elements. Background (#0d1117) and surface 
+     (#161b22) colours mirror GitHub's dark theme, a widely recognised and accessible 
+     dark UI standard. Text is a soft off-white (#e6edf3) rather than pure white to 
+     reduce eye strain. Success and danger colours follow the universal green/red 
+     convention so feedback states are immediately recognisable without explanation. */
   --color-primary:    #00d4aa;
   --color-secondary:  #3a86ff;
   --color-bg:         #0d1117;
@@ -21,18 +55,41 @@
   --color-danger:     #f85149;
   --color-border:     #30363d;
 }
-
-/* rules to handle layout switching for sidebar links */
+/* ============================================================
+   VIEW SWITCHING
+   ============================================================
+   The SPA navigation works by hiding all views by default and 
+   only showing the one with the .active class. JavaScript adds 
+   and removes .active when the user clicks a nav link, giving 
+   the appearance of page navigation without any page reload,
+   and of course ensuring this assignment isn't a total failure :D */
 .view {
   display: none;
 }
 .view.active {
   display: block;
 }
-
-/* Light mode - toggled via JS adding .light to body */
-
+/* ============================================================
+   LIGHT MODE
+   ============================================================
+   Light mode is applied by adding the .light class to the body 
+   element via JavaScript when the user clicks the theme toggle.
+   By redefining the same CSS variables here, every element that 
+   references them automatically updates without any additional rules.
+   Light mode is inspired by and chosen to mirror GitHub's light theme 
+   for consistency and familiarity, using a soft off-white background 
+   rather than pure white to reduce contrast harshness. */
 body.light {
+  /* Light mode redefines the same CSS variables so every element updates 
+     automatically without additional rules. Colours are adapted from GitHub's 
+     light theme for familiarity and accessibility. The primary shifts from teal 
+     to blue (#0969da) as blue has better contrast on light backgrounds and is 
+     the standard for accessible interactive elements. The background uses a soft 
+     off-white (#f0f4f8) rather than pure white to reduce contrast harshness and 
+     eye strain. Surface remains pure white so cards and panels retain their 
+     subtle lift above the background. Success and danger colours are 
+     darkened slightly from their dark mode equivalents to maintain readability 
+     against the lighter background while keeping the same green/red convention. */
   --color-primary:    #0969da;
   --color-secondary:  #0550ae;
   --color-bg:         #f0f4f8;
@@ -43,57 +100,90 @@ body.light {
   --color-danger:     #d1242f;
   --color-border:     #d0d7de;
 }
+/* ============================================================
+   GLOBAL RESET AND BASE STYLES
+   ============================================================ */
 
-/* layout scaffolding for the app */
+/* box-sizing: border-box applied universally so that padding and 
+   borders are included within an element's declared width and height */
 * {
   box-sizing: border-box;
 }
+/* DM Sans set as the base font for the entire document.
+   margin: 0 removes the default browser body margin that would 
+   otherwise create unwanted whitespace around the edges of the page. */
 body {
   font-family: 'DM Sans', sans-serif;
   margin: 0;
   background: var(--color-bg);
   color: var(--color-text);
 }
-
-/* Top banner */
+/* ============================================================
+   TOP BANNER
+   ============================================================
+   The header is fixed at the top and uses the surface colour 
+   rather than the background to lift it slightly from the page,
+   creating a clear visual separation between the header and content. */
 #top-banner {
   padding: 1rem;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
+/* Share Tech Mono used here to reinforce the cybersecurity/terminal 
+   aesthetic in the most prominent piece of branding on the page */
 #top-banner h1 {
   margin: 0;
   font-family: 'Share Tech Mono', monospace;
   color: var(--color-primary);
 }
+/* Subtitle uses muted text and reduced font weight to sit below 
+   the title in without competing with it */
 #top-banner h3 {
   margin: 0.25rem 0 0 0;
   font-size: 0.95rem;
   font-weight: 400;
   color: var(--color-text-muted);
 }
-
-/* Layout */
+/* ============================================================
+   LAYOUT
+   ============================================================
+   Flexbox used for the main layout to place the sidebar and content 
+   area side by side. min-height ensures the layout fills the viewport 
+   height minus the approximate height of the top banner, preventing 
+   a short page (thanks w3 school!). */
 #layout {
   display: flex;
   min-height: calc(100vh - 90px);
 }
-
-/* Sidebar - i used padding to create space and margins to create vertical spacing */
+/* ============================================================
+   SIDEBAR NAVIGATION
+   ============================================================
+   Fixed width of 220px gives enough room for nav labels without 
+   taking up too much horizontal space on the main content area.
+   Padding creates a bit of breathing room so text does not sit 
+   flush against the edges. Much trial and error here */
 #side-menu {
   width: 220px;
   padding: 1rem;
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
 }
+/* List reset removes default bullet points and indentation 
+   that would otherwise interfere with the custom nav styling */
 #side-menu ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
+/* Vertical spacing between nav items using margin-bottom 
+   rather than padding so the spacing sits outside the clickable area */
 #side-menu li {
   margin-bottom: 0.75rem;
 }
+/* Nav links displayed as block elements so the entire row is clickable,
+   not just the text. The left border is set to transparent by default 
+   so it takes up space without being visible, preventing a layout shift 
+   when the coloured border appears on hover or active state. */
 #side-menu a {
   display: block;
   text-decoration: none;
@@ -103,31 +193,48 @@ body {
   border-left: 3px solid transparent;
   border-radius: 4px;
 }
+/* Hover state brightens the text and reveals the left border accent 
+   to give clear visual feedback that the element is interactive */
 #side-menu a:hover {
   color: var(--color-text);
   border-left-color: var(--color-primary);
 }
+/* Active state uses the primary colour on both text and border 
+   to clearly indicate which view is currently displayed */
 #side-menu a.active {
   color: var(--color-primary);
   border-left-color: var(--color-primary);
 }
-
-/* Main content */
+/* ============================================================
+   MAIN CONTENT AREA
+   ============================================================
+   flex: 1 allows the content area to grow and fill all remaining 
+   horizontal space after the fixed-width sidebar.
+   max-width caps line length for readability on wide screens; 
+   long lines of text become difficult to read beyond around 80-100 characters. */
 #main-content {
   flex: 1;
   padding: 1rem;
   max-width: 1100px;
 }
-
-/* Email card */
+/* ============================================================
+   EMAIL PREVIEW CARD
+   ============================================================
+   The email card uses the surface colour and a border radius to 
+   visually separate it from the page background */
 #email {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   padding: 1rem;
   border-radius: 8px;
 }
-
-/* Buttons */
+/* ============================================================
+   BUTTONS
+   ============================================================
+   Consistent padding and border-radius applied globally to all 
+   buttons.DM Sans is explicitly set here as buttons do not always inherit 
+   the body font in all browsers.Transition on filter provides a smooth brightness change on hover 
+   rather than an abrupt state change, making it look right pretty. */
 button {
   padding: 0.5rem 1rem;
   margin-right: 0.5rem;
@@ -137,21 +244,32 @@ button {
   cursor: pointer;
   border-radius: 6px;
   font-family: 'DM Sans', sans-serif;
-/* add a smooth transition for hover effects */
   transition: filter 0.2s ease;
 }
+/* brightness(0.95) darkens the button slightly on hover rather than 
+   changing colour entirely, keeping the interaction smooth and cool */
 button:hover {
   filter: brightness(0.95);
 }
-
-/* Feedback */
+/* ============================================================
+   FEEDBACK AREA
+   ============================================================
+   Same card styling as the email preview for visual consistency.
+   The feedback area sits below the action buttons and displays 
+   the result and explanation after the user makes their choice. */
 #feedback {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   padding: 0.75rem 1rem;
   border-radius: 8px;
 }
-/* Site-wide footer - added later to include copyright information */
+/* ============================================================
+   SITE-WIDE FOOTER
+   ============================================================
+   Added after the initial build to include copyright information 
+   and a LinkedIn link. Sits outside the main layout div so it 
+   spans the full page width rather than just the content area.
+   Reduced font size and muted colour keeps it out of the way */
 #site-footer {
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--color-border);
@@ -159,6 +277,9 @@ button:hover {
   color: var(--color-text-muted);
   text-align: center;
 }
+/* Footer links use the primary accent colour for consistency with 
+   other interactive elements, with underline added on hover to 
+   reinforce that the element is clickable */
 #site-footer a {
   color: var(--color-primary);
   text-decoration: none;
