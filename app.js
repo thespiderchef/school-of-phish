@@ -72,10 +72,11 @@ const email2 = {
     <p>Hello,</p>
     <p>Please be aware that scheduled maintenance will take place this Saturday between 22:00 and 02:00.</p>
     <p>During this time, access to some systems may be intermittent.</p>
+    <p>You can check live system status at any time on the <a href="https://status.plymouth.ac.uk">IT Status Page</a>.</p>
     <p>Kind regards,<br>Plymouth University IT Services</p>
   `,
   isPhishing: false,
-  explanation: "Uses an official domain, provides advance notice, and does not request personal information."
+  explanation: "Uses an official domain, provides advance notice, links to an official university status page, and does not request any personal information."
 };
 
 const email3 = {
@@ -128,32 +129,31 @@ const email6 = {
 };
 
 const email7 = {
-  from: "Prince Adewale <royal.funds.transfer@gmail.com>",
-  subject: "URGENT BUSINESS PROPOSAL - CONFIDENTIAL",
+  from: "Dr. Emmanuel Osei <e.osei.legal@gmail.com>",
+  subject: "Confidential Legal Matter Requiring Your Assistance",
   body: `
-    <p>Dear Beloved Friend,</p>
-    <p>I am Prince Adewale, son of the late Minister of Finance.</p>
-    <p>I have the sum of <strong>$15,000,000 USD</strong> that I wish to transfer into your account.</p>
-    <p>You have been selected due to your honesty and trustworthiness.</p>
-    <p>Please reply urgently with your full name, address, and bank details.</p>
-    <p>God bless you,<br>Prince Adewale</p>
+    <p>Dear Friend,</p>
+    <p>I am a solicitor based in Accra, Ghana. My late client, who shares your surname, passed away intestate leaving an estate valued at $4,200,000 USD.</p>
+    <p>As no next of kin has been located, I am seeking a foreign partner to assist with the legal transfer of these funds. You will receive 35% as compensation.</p>
+    <p>This matter is strictly confidential. Please respond with your full name and contact details.</p>
+    <p>Yours faithfully,<br>Dr. Emmanuel Osei</p>
   `,
   isPhishing: true,
-  explanation: "Classic advance-fee scam using unrealistic promises, poor grammar, and requests for bank details."
+  explanation: "Classic advance-fee fraud; uses a professional title and legal framing to appear credible. Requests personal details and promises an unrealistic financial reward for no legitimate reason."
 };
 
 const email8 = {
-  from: "International Lottery <winnings@global-lotto-win.biz>",
-  subject: "CONGRATULATIONS! YOU HAVE WON £1,250,000",
+  from: "HMRC <tax-refund@hmrc-refunds.co.uk>",
+  subject: "You Are Entitled to a Tax Refund of £342.50",
   body: `
-    <p>Congratulations!</p>
-    <p>Your email address has been randomly selected as the winner of our international lottery.</p>
-    <p>You have won <strong>£1,250,000</strong>.</p>
-    <p>To claim your prize, please reply with your personal details and a processing fee of £250.</p>
-    <p>Act fast to avoid forfeiting your winnings!</p>
+    <p>Dear Taxpayer,</p>
+    <p>Following a review of your tax records, we have determined that you are entitled to a refund of <strong>£342.50</strong>.</p>
+    <p>To claim your refund, please verify your bank details within 14 days.</p>
+    <p><a href="hmrc-refunds.co.uk/claim" onclick="handlePhishingLink('gov.uk/claim-tax-refund', 'hmrc-refunds.co.uk/claim'); return false;">Claim Your Refund</a></p>
+    <p>HM Revenue and Customs</p>
   `,
   isPhishing: true,
-  explanation: "Unsolicited winnings, pressure to act quickly, and request for a processing fee are strong scam indicators."
+  explanation: "HMRC never contacts taxpayers about refunds by email. The domain is hmrc-refunds.co.uk rather than the official gov.uk; a classic impersonation tactic targeting people expecting a refund."
 };
 
 const email9 = {
@@ -198,16 +198,17 @@ const email11 = {
 };
 
 const email12 = {
-  from: "Spotify Billing <support@spotify-billing-centre.com>",
-  subject: "Your Payment Failed - Update Your Details",
+  from: "Spotify <no-reply@spotify.com>",
+  subject: "Your Spotify Family Plan Invite",
   body: `
-    <p>Dear Valued Customer,</p>
-    <p>We were unable to process your latest Spotify payment.</p>
-    <p>To avoid losing access to your account, please update your billing information within 24 hours.</p>
-    <p><a href="spotify-billing-centre.com/steal-card" onclick="handlePhishingLink('spotify.com/account/billing', 'spotify-billing-centre.com/steal-card'); return false;">Update Billing Details</a></p>
+    <p>Hi,</p>
+    <p>Someone has invited you to join their Spotify Premium Family plan.</p>
+    <p>Family plan members need to confirm they live at the same address as the plan manager.</p>
+    <p>Accept the invite and confirm your address through your <a href="https://spotify.com/account">Spotify account page</a>.</p>
+    <p>The Spotify Team</p>
   `,
-  isPhishing: true,
-  explanation: "Fake Spotify domain, generic greeting, artificial urgency, and a link to harvest payment details."
+  isPhishing: false,
+  explanation: "Comes from Spotify's official domain, links directly to the official spotify.com account page, and does not ask for credentials or payment details."
 };
 
 const email13 = {
@@ -234,7 +235,7 @@ const email14 = {
     <p>Microsoft Security Team</p>
   `,
   isPhishing: true,
-  explanation: "Sender domain has a double 'f' in 'microsofft' — a classic typosquat. Locking accounts to create panic is a common phishing tactic."
+  explanation: "Sender domain has a double 'f' in 'microsofft' - a classic typosquat. Locking accounts to create panic is a common phishing tactic."
 };
 
 const email15 = {
@@ -260,7 +261,7 @@ const email16 = {
     <p><a href="paypal-customer-support.org/steal-credentials" onclick="handlePhishingLink('paypal.com/restore-account', 'paypal-customer-support.org/steal-credentials'); return false;">Restore Account</a></p>
   `,
   isPhishing: true,
-  explanation: "PayPal's real domain is paypal.com — this uses a lookalike. Suspension threats are a high-pressure tactic designed to bypass critical thinking."
+  explanation: "PayPal's real domain is paypal.com - this uses a lookalike. Suspension threats are a high-pressure tactic designed to bypass critical thinking."
 };
 
 const email17 = {
@@ -314,6 +315,81 @@ const email20 = {
   isPhishing: true,
   explanation: "The NHS does not contact patients this way. The domain is not nhs.uk, and threatening to archive medical records is a manipulation tactic targeting vulnerable users."
 };
+const email21 = {
+  from: "Microsoft 365 <no-reply@microsoft.com>",
+  subject: "Unusual sign-in activity on your account",
+  body: `
+    <p>Dear user,</p>
+    <p>We detected a sign-in to your Microsoft 365 account from a new device.</p>
+    <p><strong>Location:</strong> Kiev, Ukraine<br>
+    <strong>Device:</strong> Windows 11 / Chrome<br>
+    <strong>Time:</strong> Today at 03:14 AM</p>
+    <p>If this was you, no action is needed. If you don't recognise this activity, secure your account immediately.</p>
+    <p><a href="microsoft-account-activity.com/review" onclick="handlePhishingLink('account.microsoft.com/activity', 'microsoft-account-activity.com/review'); return false;">Review Activity</a></p>
+    <p>The Microsoft Account Team</p>
+  `,
+  isPhishing: true,
+  explanation: "The sender domain is legitimate but the link goes to microsoft-account-activity.com rather than microsoft.com. The specific device and location details are fabricated to create panic and bypass critical thinking."
+};
+
+const email22 = {
+  from: "DocuSign <dse@docusign.net>",
+  subject: "Your document is ready for signature",
+  body: `
+    <p>Hello,</p>
+    <p><strong>Plymouth University Finance Department</strong> has sent you a document to review and sign.</p>
+    <p><strong>Document:</strong> 2025-26 Bursary Agreement<br>
+    <strong>Expires:</strong> 48 hours from receipt</p>
+    <p>Please review and sign this document at your earliest convenience.</p>
+    <p><a href="docusign-secure.net/sign/PLY-2025-bursary" onclick="handlePhishingLink('docusign.com/sign/PLY-2025-bursary', 'docusign-secure.net/sign/PLY-2025-bursary'); return false;">Review Document</a></p>
+    <p>DocuSign Electronic Signature Service</p>
+  `,
+  isPhishing: true,
+  explanation: "Spoofs a trusted e-signature service and references a plausible university document. The real DocuSign domain is docusign.com; docusign-secure.net is a lookalike. The 48-hour expiry creates artificial urgency."
+};
+
+const email23 = {
+  from: "IT Security <security@plymouth.ac.uk>",
+  subject: "Mandatory: Multi-Factor Authentication Enrollment by Friday",
+  body: `
+    <p>Dear Student,</p>
+    <p>As part of our ongoing commitment to account security, the University is rolling out mandatory Multi-Factor Authentication (MFA) for all student accounts.</p>
+    <p>You must enrol before Friday 21st March or your account will be suspended pending manual verification.</p>
+    <p><a href="plymouth-mfa-enrol.com/student" onclick="handlePhishingLink('myaccount.plymouth.ac.uk/mfa', 'plymouth-mfa-enrol.com/student'); return false;">Enrol in MFA Now</a></p>
+    <p>IT Security Team<br>University of Plymouth</p>
+  `,
+  isPhishing: true,
+  explanation: "Impersonates the university IT security team with a highly plausible scenario. MFA rollouts are genuinely common; the domain plymouth-mfa-enrol.com is not affiliated with the university. The suspension threat pressures users into acting without checking the URL."
+};
+
+const email24 = {
+  from: "LinkedIn <messages-noreply@linkedin.com>",
+  subject: "You have a new message from a recruiter",
+  body: `
+    <p>Hi,</p>
+    <p><strong>Sarah Mitchell</strong>, Senior Talent Acquisition at <strong>CrowdStrike</strong>, has sent you a message on LinkedIn.</p>
+    <p><em>"Hi, I came across your profile and I think you'd be a great fit for a junior SOC analyst role we're hiring for. Would love to connect — please review the full job description and get back to me."</em></p>
+    <p><a href="linkedin-jobs.net/crowdstrike-soc-analyst" onclick="handlePhishingLink('linkedin.com/messaging', 'linkedin-jobs.net/crowdstrike-soc-analyst'); return false;">View Message and Job Description</a></p>
+    <p>The LinkedIn Team</p>
+  `,
+  isPhishing: true,
+  explanation: "Targets job seekers with a highly convincing recruiter message from a credible company. The sender address looks legitimate but the link goes to linkedin-jobs.net rather than linkedin.com. Spear phishing attacks targeting students and graduates frequently use this pattern."
+};
+
+const email25 = {
+  from: "Barclays <secure.alerts@barclays.co.uk>",
+  subject: "Action Required: Verify Your Account Details",
+  body: `
+    <p>Dear Valued Customer,</p>
+    <p>As part of our regular security review, we need to verify your account information to ensure continued access to online banking.</p>
+    <p>This is a routine process required under FCA regulations and will take less than two minutes.</p>
+    <p>Please complete verification before <strong>midnight tonight</strong> to avoid a temporary hold being placed on your account.</p>
+    <p><a href="barclays-secure-verify.com/confirm" onclick="handlePhishingLink('banking.barclays.co.uk/verify', 'barclays-secure-verify.com/confirm'); return false;">Complete Verification</a></p>
+    <p>Barclays Security Team</p>
+  `,
+  isPhishing: true,
+  explanation: "Highly polished banking phish that references the FCA to appear authoritative. The domain is barclays-secure-verify.com rather than barclays.co.uk. The midnight deadline creates extreme urgency. Legitimate banks never ask customers to verify account details via email."
+};
 
 //email array
 const emails = [
@@ -336,7 +412,12 @@ const emails = [
   email17,
   email18,
   email19,
-  email20 
+  email20,
+  email21,
+  email22,
+  email23,
+  email24,
+  email25
 ];
 
 // Render function
