@@ -45,6 +45,7 @@ const phishBtn = document.getElementById("btn-phish");
 const nextBtn = document.getElementById("btn-next"); 
 const feedbackEl = document.getElementById("feedback");
 const scoreEl = document.getElementById("score");
+const actionEl = document.getElementById("actions");
 
 // Score tracking
 let score = 0;
@@ -345,39 +346,115 @@ function renderEmail(email) {
   emailBodyEl.innerHTML = email.body;   // Using innerHTML to render HTML content
 
 }
+// Finally got working on vs code, imported here after I messed up the branch.
+// Shows the end screen once all emails have been answered.
+// Hides the email container, action buttons, feedback area, and score footer,
+// then renders a summary card with the final score, percentage, and a performance message.
+function showEndScreen() {
+  const percentage = Math.round((score / emails.length) * 100);
+ 
+  let message;
+  if (percentage === 100) {
+    message = "Perfect score! You're a phishing detection expert.";
+  } else if (percentage >= 80) {
+    message = "Great work! You have a strong eye for phishing attempts.";
+  } else if (percentage >= 60) {
+    message = "Not bad — but there's room to improve. Review the tips section for guidance.";
+  } else if (percentage >= 40) {
+    message = "You caught some, but missed quite a few. Spend some time on the Phishing Tips page.";
+  } else {
+    message = "Phishing emails are designed to trick you — review the tips and try again.";
+  }
+ 
+  // Hide the training UI
+  document.getElementById("email-container").style.display = "none";
+  actionsEl.style.display = "none";
+  feedbackEl.style.display = "none";
+  document.querySelector("#view-training footer").style.display = "none";
+ 
+  // Build and inject the end screen
+  const endScreen = document.createElement("div");
+  endScreen.id = "end-screen";
+  endScreen.innerHTML = `
+    <h2>Training Complete</h2>
+    <p>You scored <strong>${score} out of ${emails.length}</strong> (${percentage}%)</p>
+    <p>${message}</p>
+    <button id="btn-restart">Try Again</button>
+  `;
+  document.getElementById("view-training").appendChild(endScreen);
+ 
+  // Restart button resets state and returns to the first email
+  document.getElementById("btn-restart").addEventListener("click", function () {
+    score = 0;
+    currentEmailIndex = 0;
+    scoreEl.textContent = score;
+ 
+    // Remove end screen and restore training UI
+    endScreen.remove();
+    document.getElementById("email-container").style.display = "";
+    actionsEl.style.display = "";
+    feedbackEl.style.display = "";
+    document.querySelector("#view-training footer").style.display = "";
+ 
+    // Restore action buttons in case they were hidden
+    legitBtn.style.display = "";
+    phishBtn.style.display = "";
+ 
+    renderEmail(emails[currentEmailIndex]);
+    feedbackEl.textContent = "Make your choice above to see if you're correct!";
+  });
+}
 
 // Initial render
 renderEmail(emails[currentEmailIndex]);
 
-// button click handlers - checks if the user's choice matches the email's phishing status, updates feedback and score accordingly, then updates the score display
+// Button click handlers  - updated to work with new logic in end screen etc
+// After the user makes a choice, the two answer buttons are hidden so they
+// cannot change their answer before clicking Next. The explanation from the
+// email object is appended to the feedback so the user understands why.
 legitBtn.addEventListener("click", function () {
-  if (emails[currentEmailIndex].isPhishing === false) {
-    feedbackEl.textContent = "Correct! This email is legitimate.";
+  const current = emails[currentEmailIndex];
+  if (current.isPhishing === false) {
+    feedbackEl.textContent = `Correct! This email is legitimate. ${current.explanation}`;
     score++;
   } else {
-    feedbackEl.textContent = "Incorrect. This email shows signs of phishing.";
+    feedbackEl.textContent = `Incorrect. This email shows signs of phishing. ${current.explanation}`;
   }
-
   scoreEl.textContent = score;
+ 
+  // Hide answer buttons after choice is made
+  legitBtn.style.display = "none";
+  phishBtn.style.display = "none";
 });
-
+ 
 phishBtn.addEventListener("click", function () {
-  if (emails[currentEmailIndex].isPhishing === true) {
-    feedbackEl.textContent = "Correct! This email is a phishing attempt.";
+  const current = emails[currentEmailIndex];
+  if (current.isPhishing === true) {
+    feedbackEl.textContent = `Correct! This email is a phishing attempt. ${current.explanation}`;
     score++;
   } else {
-    feedbackEl.textContent = "Incorrect. This email appears to be legitimate.";
+    feedbackEl.textContent = `Incorrect. This email appears to be legitimate. ${current.explanation}`;
   }
-
   scoreEl.textContent = score;
+ 
+  // Hide answer buttons after choice is made
+  legitBtn.style.display = "none";
+  phishBtn.style.display = "none";
 });
-
+ 
 nextBtn.addEventListener("click", function () {
   currentEmailIndex++;
+ 
+  // If all emails have been seen, show the end screen instead of looping
   if (currentEmailIndex >= emails.length) {
-    currentEmailIndex = 0; // Loop back to the first email
-  } 
+    showEndScreen();
+    return;
+  }
+ 
   renderEmail(emails[currentEmailIndex]);
   feedbackEl.textContent = "Make your choice above to see if you're correct!";
+ 
+  // Restore answer buttons for the next email
+  legitBtn.style.display = "";
+  phishBtn.style.display = "";
 });
-
