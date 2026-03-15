@@ -45,7 +45,7 @@ const phishBtn = document.getElementById("btn-phish");
 const nextBtn = document.getElementById("btn-next"); 
 const feedbackEl = document.getElementById("feedback");
 const scoreEl = document.getElementById("score");
-const actionEl = document.getElementById("actions");
+const actionsEl = document.getElementById("actions");
 
 // Score tracking
 let score = 0;
