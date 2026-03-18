@@ -1,31 +1,38 @@
-The School of Phish
+# The School of Phish
 
 **The School of Phish** is an interactive phishing awareness trainer built as a Single Page Application (SPA). It presents realistic email scenarios and challenges users to identify phishing attempts from legitimate correspondence; with real-time feedback explaining the tell-tale signs in each email.
 
 Built as part of COMP1004 Computing Practice at the University of Plymouth.
 
-Technologies Used
+## Technologies Used
+
 - HTML5
 - CSS3
 - JavaScript (vanilla)
 
-Features
-- 20 realistic email scenarios spanning a range of phishing types and legitimate correspondence
+## Features
+
+- 25 realistic email scenarios spanning a range of phishing types and legitimate correspondence; including advanced spear phishing, impersonation, and lookalike domain attacks
 - Real-time feedback on each decision with explanations of phishing indicators
 - Sneaky link simulation; links display a legitimate-looking URL but reveal the true malicious destination on click
-- Simple scoring system tracking correct identifications
+- Answer buttons hidden after each decision to prevent second-guessing
+- Scoring system tracking correct identifications throughout the session
+- End screen on completion showing final score, percentage, and a performance message with the option to restart
 - Dark mode by default with a light mode toggle
 - SPA navigation with three views; Training, Phishing Tips, and About
 - Phishing Tips page covering key awareness topics
 - Fully responsive layout
 
-Project Structure
+## Project Structure
+
 - `index.html` : main SPA structure and all three views
-- `style.css` : theming, layout, and component styles
-- `app.js` : email data, navigation logic, scoring, and interactive feedback
+- `style.css` : theming, layout, and component styles with inline justification comments
+- `app.js` : email data, navigation logic, scoring, button state management, and interactive feedback
 
-Development Notes
-This repository is version-controlled using Git and GitHub. Commits are made incrementally to demonstrate the development process, including fixes and iterative improvements.
+## Development Notes
 
-Author
-Sam Vincent · [LinkedIn](https://www.linkedin.com/in/sam-vincent-730ab6387/) · [samvincent.me](https://samvincent.me)
+This repository is version-controlled using Git and GitHub. Commits follow the Conventional Commits specification and are made incrementally to demonstrate the development process, including fixes and iterative improvements.
+
+## Author
+
+Sam Vincent · [LinkedIn](https://www.linkedin.com/in/sam-vincent148/) · [samvincent.me](https://samvincent.me)
