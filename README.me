@@ -12,12 +12,13 @@ Built as part of COMP1004 Computing Practice at the University of Plymouth.
 
 ## Features
 
+- Username input on load; email scenarios are personalised with the user's name throughout the session, making phishing attempts harder to spot and the training more realistic
 - 25 realistic email scenarios spanning a range of phishing types and legitimate correspondence; including advanced spear phishing, impersonation, and lookalike domain attacks
 - Real-time feedback on each decision with explanations of phishing indicators
 - Sneaky link simulation; links display a legitimate-looking URL but reveal the true malicious destination on click
 - Answer buttons hidden after each decision to prevent second-guessing
 - Scoring system tracking correct identifications throughout the session
-- End screen on completion showing final score, percentage, and a performance message with the option to restart
+- End screen on completion showing final score, percentage, and a personalised performance message with the option to restart
 - Dark mode by default with a light mode toggle
 - SPA navigation with three views; Training, Phishing Tips, and About
 - Phishing Tips page covering key awareness topics
@@ -27,7 +28,7 @@ Built as part of COMP1004 Computing Practice at the University of Plymouth.
 
 - `index.html` : main SPA structure and all three views
 - `style.css` : theming, layout, and component styles with inline justification comments
-- `app.js` : email data, navigation logic, scoring, button state management, and interactive feedback
+- `app.js` : email data, navigation logic, scoring, button state management, username input handling, and interactive feedback
 
 ## Development Notes
 
