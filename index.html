@@ -27,30 +27,45 @@
         <main id="main-content">
 
   <section id="view-training" class="view active">
-    <h2>Phishing Email Training</h2>
-    <p>Welcome to The School of Phish! In this training module, you'll be presented with a series of emails. Your task is to determine whether each email is legitimate or a phishing attempt. Click the buttons below each email to make your choice and receive immediate feedback on your decision. Let's get started and sharpen your phishing detection skills!</p>
 
-    <div id="email-container">
-      <h2>Email Preview</h2>
-      <div id="email"> <!-- I added this section to provide users with a clear and structured layout for the email content. By separating the email preview into its own container, it allows for better styling and organization of the email elements (sender, subject, body), making it easier for users to read and analyze the email before making their decision. -->
-        <p><strong>From:</strong> <span id="email-from">email@domain.com</span></p>
-        <p><strong>Subject:</strong> <span id="email-subject">Email Subject Here</span></p>
-        <div id="email-body">
-          <p>Email body content goes here...</p>
+    <!-- Name screen - shown first to capture the user's name before training begins.
+         The name is used to personalise email templates and the end screen, making
+         the training more realistic and demonstrating genuine input/output functionality. -->
+    <div id="name-screen">
+      <h2>Welcome to The School of Phish</h2>
+      <p>Before we begin, what's your name?</p>
+      <input type="text" id="username-input" placeholder="Enter your name" />
+      <button id="btn-start">Start Training</button>
+    </div>
+
+    <!-- Training content - hidden until the user submits their name -->
+    <div id="training-content" style="display: none;">
+      <h2>Phishing Email Training</h2>
+      <p>Welcome to The School of Phish! In this training module, you'll be presented with a series of emails. Your task is to determine whether each email is legitimate or a phishing attempt. Click the buttons below each email to make your choice and receive immediate feedback on your decision. Let's get started and sharpen your phishing detection skills!</p>
+
+      <div id="email-container">
+        <h2>Email Preview</h2>
+        <div id="email"> <!-- I added this section to provide users with a clear and structured layout for the email content. By separating the email preview into its own container, it allows for better styling and organization of the email elements (sender, subject, body), making it easier for users to read and analyze the email before making their decision. -->
+          <p><strong>From:</strong> <span id="email-from">email@domain.com</span></p>
+          <p><strong>Subject:</strong> <span id="email-subject">Email Subject Here</span></p>
+          <div id="email-body">
+            <p>Email body content goes here...</p>
+          </div>
         </div>
       </div>
-    </div>
-    <div id="actions"> <!-- I added this section to provide users with clear and accessible buttons for interacting with the training module. By placing the action buttons directly below the email preview, it creates a natural flow for users to read the email and then immediately make their choice, enhancing the overall user experience and engagement with the training content. -->
-      <button id="btn-legit">Mark as Legitimate</button>
-      <button id="btn-phish">Mark as Phishing</button>
-      <button id="btn-next">Next Email</button>
-    </div>
-    <div id="feedback"> <!-- I added this section to provide users with immediate feedback on their choices, which is crucial for effective learning. By explaining why an email is legitimate or a phishing attempt, users can understand the specific indicators they should look for in real-life scenarios, reinforcing their learning and helping them apply these skills outside of the training environment. -->
-      <p id="feedback-message">Make your choice above to see if you're correct!</p>
-    </div>
-    <footer> <!-- I added a score display in the footer to provide users with a sense of progression and achievement as they go through the training. This can help motivate them to continue learning and improving their phishing detection skills, as they can see their score increase with each correct answer. -->
-      <p>Score: <span id="score">0</span></p>
-    </footer>
+      <div id="actions"> <!-- I added this section to provide users with clear and accessible buttons for interacting with the training module. By placing the action buttons directly below the email preview, it creates a natural flow for users to read the email and then immediately make their choice, enhancing the overall user experience and engagement with the training content. -->
+        <button id="btn-legit">Mark as Legitimate</button>
+        <button id="btn-phish">Mark as Phishing</button>
+        <button id="btn-next">Next Email</button>
+      </div>
+      <div id="feedback"> <!-- I added this section to provide users with immediate feedback on their choices, which is crucial for effective learning. By explaining why an email is legitimate or a phishing attempt, users can understand the specific indicators they should look for in real-life scenarios, reinforcing their learning and helping them apply these skills outside of the training environment. -->
+        <p id="feedback-message">Make your choice above to see if you're correct!</p>
+      </div>
+      <footer> <!-- I added a score display in the footer to provide users with a sense of progression and achievement as they go through the training. This can help motivate them to continue learning and improving their phishing detection skills, as they can see their score increase with each correct answer. -->
+        <p>Score: <span id="score">0</span></p>
+      </footer>
+    </div><!-- end #training-content -->
+
   </section>
 
 <section id="view-tips" class="view">
