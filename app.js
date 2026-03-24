@@ -1,5 +1,5 @@
+document.addEventListener("DOMContentLoaded", function () {
 // The School of Phish - Interactive Phishing Email Training App
-
 console.log("The School of Phish app.js connected");
 
 // DOM elements
@@ -545,4 +545,5 @@ nextBtn.addEventListener("click", function () {
   // Restore answer buttons for the next email
   legitBtn.style.display = "";
   phishBtn.style.display = "";
+});
 });
