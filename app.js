@@ -1,3 +1,9 @@
+// Needs to be global so onclick attributes in email bodies can access it
+function handlePhishingLink(displayedUrl, realUrl) {
+  const feedbackEl = document.getElementById("feedback");
+  feedbackEl.textContent = `Careful! That link said "${displayedUrl}" but would have taken you to "${realUrl}" - a classic phishing trick.`;
+}
+
 document.addEventListener("DOMContentLoaded", function () {
 // The School of Phish - Interactive Phishing Email Training App
 console.log("The School of Phish app.js connected");
@@ -33,11 +39,6 @@ navLinks.forEach(link => {
     this.classList.add("active");
   });
 });
-
-// helper function for sneaky links
-function handlePhishingLink(displayedUrl, realUrl) {
-  feedbackEl.textContent = `Careful! That link said "${displayedUrl}" but would have taken you to "${realUrl}" - a classic phishing trick.`;
-}
 
 // interaction bits
 const legitBtn = document.getElementById("btn-legit");
