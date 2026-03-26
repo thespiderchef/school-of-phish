@@ -287,3 +287,19 @@ button:hover {
 #site-footer a:hover {
   text-decoration: underline;
 }
+/* Additional Certificate download link - styled to match buttons */
+.btn-certificate {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  background: var(--color-success);
+  color: var(--color-bg);
+  border-radius: 6px;
+  text-decoration: none;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-certificate:hover {
+  filter: brightness(0.9);
+}

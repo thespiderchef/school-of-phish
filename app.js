@@ -467,9 +467,33 @@ function showEndScreen() {
     <h2>Training Complete, ${userName}!</h2>
     <p>You scored <strong>${score} out of ${emails.length}</strong> (${percentage}%)</p>
     <p>${message}</p>
+    ${percentage >= 80 ? `<p>You've earned a certificate of completion. Click below to download it.</p>` : ''}
     <button id="btn-restart">Try Again</button>
   `;
   document.getElementById("view-training").appendChild(endScreen);
+
+  // Generate and attach certificate download if score is 80% or above
+  if (percentage >= 80) {
+    const cert = `CERTIFICATE OF COMPLETION\n\n` +
+      `This certifies that\n\n` +
+      `${userName}\n\n` +
+      `has successfully completed The School of Phish phishing awareness training\n` +
+      `with a score of ${score} out of ${emails.length} (${percentage}%)\n\n` +
+      `Date: ${new Date().toLocaleDateString('en-GB')}\n\n` +
+      `The School of Phish · <3 · samvincent.me`;
+
+    const blob = new Blob([cert], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    // Create a download link for the certificate
+    const downloadLink = document.createElement('a');
+    downloadLink.href = url;
+    downloadLink.download = `certificate-${userName}.txt`;
+    downloadLink.textContent = 'Download Certificate';
+    downloadLink.className = 'btn-certificate';
+    // Insert before the restart button
+    const restartBtn = document.getElementById("btn-restart");
+    endScreen.insertBefore(downloadLink, restartBtn);
+  }
 
   // Restart button resets state and returns to the name screen
   document.getElementById("btn-restart").addEventListener("click", function () {
@@ -478,18 +502,15 @@ function showEndScreen() {
     userName = "";
     scoreEl.textContent = score;
 
-    // Remove end screen and restore training UI
     endScreen.remove();
     document.getElementById("email-container").style.display = "";
     actionsEl.style.display = "";
     feedbackEl.style.display = "";
     document.querySelector("#view-training footer").style.display = "";
 
-    // Restore action buttons
     legitBtn.style.display = "";
     phishBtn.style.display = "";
 
-    // Return to name screen so the user can enter their name again
     trainingContent.style.display = "none";
     nameScreen.style.display = "";
     usernameInput.value = "";
