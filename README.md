@@ -1,39 +1,23 @@
 # The School of Phish
 
-**The School of Phish** is an interactive phishing awareness trainer built as a Single Page Application (SPA). It presents realistic email scenarios and challenges users to identify phishing attempts from legitimate correspondence; with real-time feedback explaining the tell-tale signs in each email.
-
-Built as part of COMP1004 Computing Practice at the University of Plymouth.
-
-## Technologies Used
-
-- HTML5
-- CSS3
-- JavaScript (vanilla)
+An interactive phishing awareness trainer. Learners work through a realistic inbox, highlight anything suspicious, decide whether each email is legitimate or phishing, and get a marked-up debrief showing exactly what gave it away.
 
 ## Features
 
-- Username input on load; email scenarios are personalised with the user's name throughout the session, making phishing attempts harder to spot and the training more realistic
-- 25 realistic email scenarios spanning a range of phishing types and legitimate correspondence; including advanced spear phishing, impersonation, and lookalike domain attacks
-- Real-time feedback on each decision with explanations of phishing indicators
-- Sneaky link simulation; links display a legitimate-looking URL but reveal the true malicious destination on click
-- Answer buttons hidden after each decision to prevent second-guessing
-- Scoring system tracking correct identifications throughout the session
-- End screen on completion showing final score, percentage, and a personalised performance message with the option to restart
-- Dark mode by default with a light mode toggle
-- SPA navigation with three views; Training, Phishing Tips, and About
-- Phishing Tips page covering key awareness topics
-- Fully responsive layout
+- Realistic mail client with an inbox, collapsible sender details (From, Reply-To) and a browser-style status bar that shows where links really go
+- Highlighting: click any part of an email to flag it; points for real red flags, small penalties for false alarms
+- Link checking: clicking a link shows its true destination with the real domain underlined, and opening a phishing link costs points
+- Marked-up debriefs with numbered red flags, linked to a field guide of 14 phishing tactics
+- Rounds of 10 drawn from 24 scenarios (business email compromise, QR code phishing, lookalike and buried domains, malicious attachments, and genuine emails that look suspicious)
+- Progress tracking in localStorage: scores, accuracy, and the red flag types you miss most
+- Light and dark themes, keyboard shortcuts (L, P, N), screen reader announcements, reduced motion support, responsive down to phone size
 
-## Project Structure
+## Running it
 
-- `index.html` : main SPA structure and all three views
-- `style.css` : theming, layout, and component styles with inline justification comments
-- `app.js` : email data, navigation logic, scoring, button state management, username input handling, and interactive feedback
+No build step. Open `index.html`, or serve the folder with any static host (GitHub Pages works as-is).
 
-## Development Notes
+## Adding scenarios
 
-This repository is version-controlled using Git and GitHub. Commits follow the Conventional Commits specification and are made incrementally to demonstrate the development process, including fixes and iterative improvements.
+Emails and tactics live in `data.js` as plain objects; the format is documented at the top of that file. Email content is rendered with DOM methods rather than `innerHTML`.
 
-## Author
-
-Sam Vincent · [LinkedIn](https://www.linkedin.com/in/sam-vincent148/) · [samvincent.me](https://samvincent.me)
+Originally built for COMP1004 Computing Practice at the University of Plymouth.

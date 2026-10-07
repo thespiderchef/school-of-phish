@@ -1,129 +1,221 @@
 ﻿<!doctype html>
-<html lang="en">
+<html lang="en-GB">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- I added this meta tag to ensure that the website is responsive and displays correctly on different devices, such as smartphones and tablets. It sets the viewport to match the device's width and initial zoom level, improving the overall user experience across various screen sizes. -->
-    <title>The School of Phish</title>
-    <link rel="stylesheet" href="style.css"> <!-- I linked an external CSS file to keep the styling separate from the HTML structure, which promotes better organization and maintainability of the code. This allows for easier updates to the design without having to modify the HTML, and it also helps to keep the HTML file cleaner and more focused on the content. -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>The School of Phish</title>
+  <meta name="description" content="Practise spotting phishing emails in a realistic inbox, then see exactly what gave each one away.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐟</text></svg>">
+
+  <!-- Set the theme before the page paints, so there's no flash of the wrong colours. -->
+  <script>
+    (function () {
+      var t;
+      try { t = localStorage.getItem('school-of-phish:theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Caveat:wght@600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-   
-<header id="top-banner">
-  <div class="brand">
-    <h1>The School of Phish</h1>  <!-- Changed the name from Phisherman to The School of Phish, still a pun, makes more sense -->
-    <h3>Learning to spot phishing emails</h3>
-  </div>
-  <button id="theme-toggle">Change Theme</button> <!-- I added a theme toggle button to allow users to switch between light and dark modes, enhancing accessibility and user experience. This feature caters to different user preferences and can help reduce eye strain in various lighting conditions. -->
-</header>
-    
-    <div id="layout"> <!-- I added this wrapper div to create a flexible layout structure that can accommodate both the side menu and the main content area. This allows for better organization of the page elements and makes it easier to apply the SPA functionality. -->
-        <nav id="side-menu">
-                <ul>
-                <li><a href="#" class="nav-link active" data-view="training">Training</a></li>
-                <li><a href="#" class="nav-link" data-view="tips">Phishing Tips</a></li>
-                <li><a href="#" class="nav-link" data-view="about">About</a></li>
-            </ul>
-        </nav>
-        <main id="main-content">
+  <a class="skip-link" href="#main" data-skip>Skip to content</a>
 
-  <section id="view-training" class="view active">
+  <header class="site-header">
+    <a class="brand" href="#train">
+      <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+        <path d="M3 20c5-9 16-11 25-5l7-6v22l-7-6c-9 6-20 4-25-5z" fill="currentColor"/>
+        <circle cx="12" cy="18" r="2" fill="var(--surface)"/>
+      </svg>
+      <span>The School of Phish</span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="#train" data-view="train">Train</a>
+      <a href="#guide" data-view="guide">Field guide</a>
+      <a href="#progress" data-view="progress">Progress</a>
+      <a href="#about" data-view="about">About</a>
+    </nav>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch theme">
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    </button>
+  </header>
 
-    <!-- Name screen - shown first to capture the user's name before training begins.
-         The name is used to personalise email templates and the end screen, making
-         the training more realistic and demonstrating genuine input/output functionality. -->
-    <div id="name-screen">
-      <h2>Welcome to The School of Phish</h2>
-      <p>Before we begin, what would you like to be called during this exercise?</p>
-      <p>(This is just for demonstration purposes, so feel free to enter any name you like!)</p>
-      <input type="text" id="username-input" placeholder="Enter your name" />
-      <button id="btn-start">Start Training</button>
-    </div>
+  <main id="main" tabindex="-1">
 
-    <!-- Training content - hidden until the user submits their name -->
-    <div id="training-content" style="display: none;">
-      <h2>Phishing Email Training</h2>
-      <p>Welcome to The School of Phish! In this training module, you'll be presented with a series of emails. Your task is to determine whether each email is legitimate or a phishing attempt. Click the buttons below each email to make your choice and receive immediate feedback on your decision. Let's get started and sharpen your phishing detection skills!</p>
+    <!-- ============ TRAIN ============ -->
+    <section class="view" id="view-train" aria-labelledby="train-title">
 
-      <div id="email-container">
-        <h2>Email Preview</h2>
-        <div id="email"> <!-- I added this section to provide users with a clear and structured layout for the email content. By separating the email preview into its own container, it allows for better styling and organization of the email elements (sender, subject, body), making it easier for users to read and analyze the email before making their decision. -->
-          <p><strong>From:</strong> <span id="email-from">email@domain.com</span></p>
-          <p><strong>Subject:</strong> <span id="email-subject">Email Subject Here</span></p>
-          <div id="email-body">
-            <p>Email body content goes here...</p>
+      <div class="intro" id="intro">
+        <div class="intro-copy">
+          <h1 id="train-title">Every email here is a test.</h1>
+          <p class="lede">Read each one the way you'd read your own inbox. Highlight anything that looks off, then decide whether it's legitimate or phishing. Afterwards, you'll see exactly what gave it away.</p>
+          <ol class="how">
+            <li><span><strong>Read</strong> the email. Hover over links and open the sender details, just as you would for real.</span></li>
+            <li><span><strong>Highlight</strong> anything suspicious by clicking it. Every genuine red flag you catch earns points.</span></li>
+            <li><span><strong>Decide</strong> whether it's legitimate or phishing, then read the marked-up answer.</span></li>
+          </ol>
+          <button class="btn btn-primary btn-large" type="button" data-action="start">Start a round of 10</button>
+          <p class="small muted">Your progress is saved in this browser only. Nothing is sent anywhere.</p>
+        </div>
+
+        <figure class="specimen">
+          <div class="specimen-mail" aria-hidden="true">
+            <p class="specimen-row"><span class="specimen-key">From</span> <span class="specimen-addr">service@<span class="hl" data-n="1">paypal-customer-support.org</span></span></p>
+            <p class="specimen-subject">Your account has been limited</p>
+            <p><span class="hl" data-n="2">Dear Customer,</span></p>
+            <p>To restore access, you must verify your identity <span class="hl" data-n="3">within 48 hours.</span></p>
+            <p><span class="specimen-cta">Restore account</span></p>
+          </div>
+          <figcaption>
+            <span class="visually-hidden">An example phishing email, marked up:</span>
+            <ol class="specimen-notes">
+              <li>Not paypal.com!</li>
+              <li>They'd know your name</li>
+              <li>Rushing you on purpose</li>
+            </ol>
+          </figcaption>
+        </figure>
+      </div>
+
+      <div class="trainer" id="trainer" hidden>
+        <div class="round-bar">
+          <p class="round-count" id="round-count"></p>
+          <ol class="round-dots" id="round-dots" aria-label="Emails in this round"></ol>
+          <p class="round-score">Score <strong id="score">0</strong></p>
+        </div>
+
+        <div class="mail-client">
+          <aside class="inbox" aria-labelledby="inbox-title">
+            <h2 class="inbox-title" id="inbox-title">Inbox</h2>
+            <ul class="inbox-list" id="inbox-list"></ul>
+          </aside>
+
+          <div class="reader-col">
+            <article class="reader" id="reader" aria-labelledby="mail-subject">
+              <header class="mail-head">
+                <h2 class="mail-subject" id="mail-subject" data-spot="subject"></h2>
+                <div class="sender">
+                  <span class="avatar" id="mail-avatar" aria-hidden="true"></span>
+                  <div class="sender-main">
+                    <span class="sender-name" id="mail-from" data-spot="from"></span>
+                    <span class="sender-to">to me</span>
+                  </div>
+                  <time class="mail-time" id="mail-time"></time>
+                  <button class="details-toggle" id="details-toggle" type="button" aria-expanded="false" aria-controls="mail-details">Show details</button>
+                </div>
+                <dl class="mail-details" id="mail-details" hidden></dl>
+              </header>
+
+              <div class="mail-body" id="mail-body"></div>
+
+              <div class="link-pop" id="link-pop" role="dialog" aria-label="Where this link goes" hidden></div>
+
+              <p class="status-bar" id="status-bar" aria-hidden="true"></p>
+            </article>
+
+            <section class="debrief" id="debrief" hidden aria-labelledby="debrief-title"></section>
+
+            <div class="verdict-bar">
+              <p class="flag-hint" id="flag-hint"></p>
+              <div class="verdict-actions">
+                <button class="btn btn-legit" id="btn-legit" type="button">Looks legitimate <kbd>L</kbd></button>
+                <button class="btn btn-phish" id="btn-phish" type="button">It's phishing <kbd>P</kbd></button>
+                <button class="btn btn-primary" id="btn-next" type="button" hidden><span id="btn-next-label">Next email</span> <kbd>N</kbd></button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div id="actions"> <!-- I added this section to provide users with clear and accessible buttons for interacting with the training module. By placing the action buttons directly below the email preview, it creates a natural flow for users to read the email and then immediately make their choice, enhancing the overall user experience and engagement with the training content. -->
-        <button id="btn-legit">Mark as Legitimate</button>
-        <button id="btn-phish">Mark as Phishing</button>
-        <button id="btn-next">Next Email</button>
+
+      <div class="results" id="results" hidden></div>
+    </section>
+
+    <!-- ============ FIELD GUIDE ============ -->
+    <section class="view" id="view-guide" aria-labelledby="guide-title" hidden>
+      <header class="page-head">
+        <h1 id="guide-title">Field guide</h1>
+        <p class="lede">The tricks phishing emails rely on, what they look like, and how to check for them. Every red flag in the trainer links back to its entry here.</p>
+      </header>
+
+      <div class="guide-list" id="guide-list"></div>
+
+      <section class="habits" aria-labelledby="habits-title">
+        <h2 id="habits-title">Habits that beat most phishing</h2>
+        <div class="habit-grid">
+          <div>
+            <h3>Go direct</h3>
+            <p>If an email says something is wrong with an account, ignore its links. Open the app, or type the website address yourself, and look there.</p>
+          </div>
+          <div>
+            <h3>Hover, then decide</h3>
+            <p>On a computer, hover over a link and read the address in the corner of your browser. On a phone, press and hold. If it doesn't match the sender, don't click.</p>
+          </div>
+          <div>
+            <h3>A padlock isn't a promise</h3>
+            <p>HTTPS and the padlock mean the connection is encrypted, not that the site is honest. Phishing sites use them too.</p>
+          </div>
+          <div>
+            <h3>Never share a code</h3>
+            <p>One-time codes are the last lock on your account. No genuine organisation will ever ask you to read one back to them.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="report" aria-labelledby="report-title">
+        <h2 id="report-title">If one lands in your inbox</h2>
+        <p>Forward suspicious emails to <strong>report@phishing.gov.uk</strong>, the National Cyber Security Centre's reporting service, and forward scam texts to <strong>7726</strong>. Then delete them.</p>
+        <p>If you've already entered a password, change it straight away, along with anywhere else you've used it. If you've shared bank or card details, call your bank using the number on the back of your card.</p>
+        <p>At university or work, tell your IT team too. They can warn everyone else.</p>
+      </section>
+    </section>
+
+    <!-- ============ PROGRESS ============ -->
+    <section class="view" id="view-progress" aria-labelledby="progress-title" hidden>
+      <header class="page-head">
+        <h1 id="progress-title">Your progress</h1>
+        <p class="lede">How you're doing across every round, and which red flags you tend to miss.</p>
+      </header>
+      <div id="progress-body"></div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section class="view" id="view-about" aria-labelledby="about-title" hidden>
+      <div class="about">
+        <header class="page-head">
+          <h1 id="about-title">About The School of Phish</h1>
+        </header>
+
+        <h2>The project</h2>
+        <p>The School of Phish is a phishing awareness trainer. It drops you into a realistic inbox and asks you to do what attackers hope you won't: slow down, inspect, and decide.</p>
+        <p>Every email is marked up afterwards like a piece of homework, so you learn not just whether you were right, but which details gave it away. The red flags you miss most often are tracked, so you know what to practise next.</p>
+
+        <h2>The developer</h2>
+        <p>Built by Sam Vincent, an IT professional and Computer Science (Cybersecurity) undergraduate at the University of Plymouth. With over six years of experience across IT support, logistics and regulated environments including the NHS and Ministry of Defence, Sam brings a practical, security-aware perspective to everything he builds.</p>
+        <p>As a dad of two, the motivation goes beyond the academic. Phishing remains one of the most common and damaging ways into people's accounts and organisations' networks, and building tools that help everyday people recognise and resist it is exactly the kind of work that matters.</p>
+
+        <h2>How it's built</h2>
+        <p>Vanilla HTML, CSS and JavaScript, with no frameworks, dependencies or build step. Emails are stored as structured data and rendered without injecting HTML; progress stays in your browser's local storage. The project started life as coursework for COMP1004 Computing Practice.</p>
+
+        <h2>About the emails</h2>
+        <p>Every scenario is fictional. Real organisation names appear only to show how impersonation works. Links and addresses in the phishing examples are invented and go nowhere, and sender addresses shown for real organisations are illustrative, so always check an organisation's own website for how it contacts you.</p>
       </div>
-      <div id="feedback"> <!-- I added this section to provide users with immediate feedback on their choices, which is crucial for effective learning. By explaining why an email is legitimate or a phishing attempt, users can understand the specific indicators they should look for in real-life scenarios, reinforcing their learning and helping them apply these skills outside of the training environment. -->
-        <p id="feedback-message">Make your choice above to see if you're correct!</p>
-      </div>
-      <footer> <!-- I added a score display in the footer to provide users with a sense of progression and achievement as they go through the training. This can help motivate them to continue learning and improving their phishing detection skills, as they can see their score increase with each correct answer. -->
-        <p>Score: <span id="score">0</span></p>
-      </footer>
-    </div><!-- end #training-content -->
+    </section>
+  </main>
 
-  </section>
+  <footer class="site-footer">
+    <p>© <span id="year">2026</span> Sam Vincent. An open source student project. <a href="https://www.linkedin.com/in/sam-vincent-730ab6387/" target="_blank" rel="noopener">LinkedIn</a></p>
+  </footer>
 
-<section id="view-tips" class="view">
-  <h2>Phishing Detection Tips</h2>
-  <p>Phishing emails are designed to trick you into giving away personal information or clicking malicious links. Here are the key things to look out for.</p>
+  <p class="visually-hidden" id="announcer" aria-live="polite"></p>
 
-  <div class="tip-card"> <!-- I added this section to provide users with actionable advice on how to identify phishing emails. By breaking down the tips into clear, digestible points, it helps users understand the common tactics used by phishers and empowers them to make informed decisions when they encounter suspicious emails. -->
-    <h3>Check the sender's address</h3>
-    <p>Phishers often use domains that look legitimate at a glance. Look closely; <strong>paypa1.com</strong> is not the same as <strong>paypal.com</strong>. Legitimate organisations will always email you from their official domain.</p>
-  </div>
-  <div class="tip-card">
-    <h3>Watch for generic greetings</h3>
-    <p>Emails that start with "Dear Customer" or "Dear User" instead of your actual name are a red flag. Companies you have an account with will usually address you directly.</p>
-  </div>
-  <div class="tip-card">
-    <h3>Be wary of urgency</h3>
-    <p>Phrases like "act immediately", "your account will be suspended", or "you have 24 hours" are designed to panic you into clicking before you think. Legitimate organisations rarely demand instant action via email.</p>
-  </div>
-  <div class="tip-card">
-    <h3>Hover over links before clicking</h3>
-    <p>The text of a link and where it actually goes can be completely different. Always hover first and check the URL in your browser's status bar; if it looks unfamiliar or doesn't match the supposed sender, don't click it.</p>
-  </div>
-  <div class="tip-card">
-    <h3>Scrutinise the domain name</h3>
-    <p>Look for subtle misspellings, extra words, or unusual extensions. <strong>microsoft-support.net</strong>, <strong>amazonsecurity.co</strong>, and <strong>nhs-patient-portal.co</strong> are all fake; the real domains are <strong>microsoft.com</strong>, <strong>amazon.co.uk</strong>, and <strong>nhs.uk</strong>.</p>
-  </div>
-  <div class="tip-card">
-    <h3>Be suspicious of unexpected attachments</h3>
-    <p>Unsolicited attachments; especially .zip, .exe, or Office files, can contain malware. If you weren't expecting a file, don't open it, even if the sender looks familiar.</p>
-  </div>
-  <div class="tip-card">
-    <h3>HTTPS doesn't mean safe</h3>
-    <p>A padlock icon in your browser just means the connection is encrypted; it says nothing about whether the site itself is malicious. Phishing sites can and do use HTTPS.</p>
-  </div>
-</section>
-
-<section id="view-about" class="view">
-  <h2>About The School of Phish</h2>
-  <div class="about-card"> <!-- I added this section to give users insight into the motivation and background of the project, which can help build trust and connection. It also highlights the developer's expertise and real-world experience, reinforcing the credibility of the training content. -->
-    <h3>The Project</h3>
-    <p>The School of Phish is an interactive phishing awareness trainer built as a single page application. It presents realistic email scenarios and challenges you to identify phishing attempts from legitimate correspondence; with the goal of making you a harder target for cybercriminals.</p>
-    <p>Each scenario is based on real phishing tactics and provides feedback explaining the tell-tale signs in the email, so you learn not just whether you were right, but why.</p>
-  </div>
-  <div class="about-card"> 
-    <h3>The Developer</h3>
-    <p>Built by Sam Vincent; an IT professional and Computer Science (Cybersecurity) undergraduate at the University of Plymouth. With over six years of experience across IT support, logistics, and regulated environments including the NHS and Ministry of Defence, Sam brings a practical, security-aware perspective to everything he builds.</p>
-    <p>As a dad of two, the motivation behind this project goes beyond the academic. Phishing remains one of the most common and damaging attack vectors in cybersecurity; building tools that help everyday people recognise and resist it is exactly the kind of work that matters.</p>
-    <p>The School of Phish was developed as part of COMP1004 Computing Practice, using vanilla HTML, CSS, and JavaScript.</p>
-  </div>
-</section>
-</main>
-</div>
-<!-- JavaScript file for interactivity -->
-<script src="app.js"></script>
-<!-- Footer with copyright and contact information -->
-<footer id="site-footer">
-  <p>© 2025 Sam Vincent · <a href="https://www.linkedin.com/in/sam-vincent148/" target="_blank">LinkedIn</a> · Open source student project</p>
-</footer>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

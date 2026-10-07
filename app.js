@@ -1,571 +1,928 @@
-// Needs to be global so onclick attributes in email bodies can access it
-function handlePhishingLink(displayedUrl, realUrl) {
-  const feedbackEl = document.getElementById("feedback");
-  feedbackEl.textContent = `Careful! That link said "${displayedUrl}" but would have taken you to "${realUrl}" - a classic phishing trick.`;
-}
+/* The School of Phish: app.js
+ *
+ * Vanilla JavaScript, no dependencies. Structure:
+ *   1. Setup and helpers       5. Link checking and status bar
+ *   2. Theme and routing       6. Verdicts and debrief
+ *   3. Rounds                  7. Results, progress and field guide
+ *   4. Rendering an email      8. Events
+ *
+ * Email content is always inserted with textContent / DOM nodes, never
+ * innerHTML, so the data file can't inject markup or scripts.
+ */
+(function () {
+  'use strict';
 
-document.addEventListener("DOMContentLoaded", function () {
-// The School of Phish - Interactive Phishing Email Training App
-console.log("The School of Phish app.js connected");
+  /* ===== 1. Setup and helpers ===== */
 
-// DOM elements
-const emailFromEl = document.getElementById("email-from");
-const emailSubjectEl = document.getElementById("email-subject");
-const emailBodyEl = document.getElementById("email-body");
+  const DATA = window.SCHOOL_OF_PHISH;
+  const ROUND_SIZE = 10;
+  const LEGIT_PER_ROUND = 4;
+  const POINTS = { verdict: 100, flag: 25, falseFlag: -10, openedPhish: -25 };
+  const STORE_KEY = 'school-of-phish:progress:v1';
+  const THEME_KEY = 'school-of-phish:theme';
+  const MY_ADDRESS = 'me@students.plymouth.ac.uk';
 
-// theme toggle - i want it dark mode by default, so the toggle will just add a light class to switch it to light mode
-const body = document.body;
-const toggleBtn = document.getElementById("theme-toggle");
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-toggleBtn.addEventListener("click", function() {
-  body.classList.toggle("light");
-});
+  // Small element builder: el('p', { class: 'x', text: 'hi' }, child, child)
+  function el(tag, attrs = {}, ...children) {
+    const node = document.createElement(tag);
+    for (const [key, value] of Object.entries(attrs)) {
+      if (value === false || value === null || value === undefined) continue;
+      if (key === 'class') node.className = value;
+      else if (key === 'text') node.textContent = value;
+      else node.setAttribute(key, value === true ? '' : value);
+    }
+    for (const child of children.flat()) {
+      if (child === null || child === undefined || child === false) continue;
+      node.append(child instanceof Node ? child : document.createTextNode(String(child)));
+    }
+    return node;
+  }
 
-// function to handle sidebar links
-const navLinks = document.querySelectorAll(".nav-link");
-const views = document.querySelectorAll(".view");
+  function shuffle(list) {
+    const a = list.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
 
-navLinks.forEach(link => {
-  link.addEventListener("click", function(e) {
+  function hashString(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619);
+    return h >>> 0;
+  }
+
+  const plural = (n, word, many = word + 's') => `${n} ${n === 1 ? word : many}`;
+
+  function announce(message) {
+    const node = $('#announcer');
+    node.textContent = '';
+    window.setTimeout(() => { node.textContent = message; }, 30);
+  }
+
+  const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Domains. The "registrable" domain is the part someone actually bought:
+     in login.microsoft.com.verify-identity.co it's verify-identity.co. Showing
+     it clearly is one of the main things this app teaches. */
+  const TWO_PART_SUFFIXES = ['co.uk', 'ac.uk', 'gov.uk', 'org.uk', 'nhs.uk', 'ltd.uk', 'me.uk', 'com.au', 'co.nz'];
+
+  function hostOf(text) {
+    const email = text.match(/@([a-z0-9.-]+\.[a-z]{2,})/i);
+    if (email) return email[1].toLowerCase();
+    const url = text.match(/[a-z][a-z0-9+.-]*:\/\/([^/:?#\s]+)/i);
+    if (url) return url[1].toLowerCase();
+    const bare = text.match(/^([a-z0-9-]+(?:\.[a-z0-9-]+)+)/i);
+    return bare ? bare[1].toLowerCase() : null;
+  }
+
+  function registrableDomain(host) {
+    const parts = host.split('.');
+    const lastTwo = parts.slice(-2).join('.');
+    if (parts.length >= 3 && TWO_PART_SUFFIXES.includes(lastTwo)) return parts.slice(-3).join('.');
+    return lastTwo;
+  }
+
+  // Returns a fragment with the registrable domain underlined.
+  function domainMarkup(text) {
+    const frag = document.createDocumentFragment();
+    const host = hostOf(text);
+    const hostStart = host ? text.toLowerCase().indexOf(host) : -1;
+    if (hostStart < 0) {
+      frag.append(text);
+      return frag;
+    }
+    const reg = registrableDomain(host);
+    const regStart = hostStart + host.length - reg.length;
+    frag.append(
+      text.slice(0, regStart),
+      el('span', { class: 'reg', text: text.slice(regStart, regStart + reg.length) }),
+      text.slice(regStart + reg.length)
+    );
+    return frag;
+  }
+
+  /* Data preparation: give every highlightable part of an email a "spot" id,
+     and number the red flags in reading order. */
+  function normalise(raw) {
+    const subject = typeof raw.subject === 'string' ? { text: raw.subject } : raw.subject;
+    const blocks = raw.body.map((b, i) => ({ ...(typeof b === 'string' ? { p: b } : b), spot: 'b' + i }));
+    const flags = [];
+    const add = (spot, f) => { if (f) flags.push({ spot, tactic: f.t, note: f.n }); };
+    add('from', raw.from.flag);
+    if (raw.replyTo) add('replyTo', raw.replyTo.flag);
+    add('subject', subject.flag);
+    blocks.forEach(b => add(b.spot, b.flag));
+    flags.forEach((f, i) => { f.n = i + 1; });
+    return { ...raw, subject, blocks, flags, flagBySpot: new Map(flags.map(f => [f.spot, f])) };
+  }
+
+  const EMAILS = DATA.EMAILS.map(normalise);
+  const emailById = new Map(EMAILS.map(e => [e.id, e]));
+  const tacticById = new Map(DATA.TACTICS.map(t => [t.id, t]));
+
+  EMAILS.forEach(e => e.flags.forEach(f => {
+    if (!tacticById.has(f.tactic)) console.warn(`Email "${e.id}" uses unknown tactic "${f.tactic}"`);
+  }));
+
+  /* Progress is stored locally; storage can be blocked, so always fail softly. */
+  const freshProgress = () => ({ rounds: [], tactics: {}, emailsSeen: {} });
+
+  function loadProgress() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+      if (saved && Array.isArray(saved.rounds)) return { ...freshProgress(), ...saved };
+    } catch (e) { /* fall through */ }
+    return freshProgress();
+  }
+
+  function saveProgress() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(progress)); } catch (e) { /* ignore */ }
+  }
+
+  let progress = loadProgress();
+
+  /* ===== 2. Theme and routing ===== */
+
+  const root = document.documentElement;
+  const themeBtn = $('#theme-toggle');
+
+  function setTheme(theme, persist) {
+    root.setAttribute('data-theme', theme);
+    themeBtn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    if (persist) {
+      try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* ignore */ }
+    }
+  }
+
+  setTheme(root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light', false);
+  themeBtn.addEventListener('click', () => {
+    setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+  });
+
+  // Hash routing (#train, #guide, #guide/lookalike, #progress, #about) so every
+  // view can be linked to and the back button works.
+  const VIEWS = { train: 'Train', guide: 'Field guide', progress: 'Progress', about: 'About' };
+
+  function route() {
+    const [name, sub] = location.hash.replace(/^#/, '').split('/');
+    const view = name in VIEWS ? name : 'train';
+
+    $$('.view').forEach(v => { v.hidden = v.id !== 'view-' + view; });
+    $$('.site-nav a').forEach(a => {
+      if (a.dataset.view === view) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+    document.title = view === 'train' ? 'The School of Phish' : `${VIEWS[view]}: The School of Phish`;
+    closeLinkPop();
+
+    if (view === 'guide') renderGuide(sub);
+    else window.scrollTo(0, 0);
+    if (view === 'progress') renderProgress();
+  }
+
+  /* ===== 3. Rounds ===== */
+
+  let round = null;
+
+  const currentItem = () => round.items[round.current];
+  const currentEmail = () => emailById.get(currentItem().id);
+
+  // Least-seen emails first, so repeat players work through the whole pool.
+  function pickEmails() {
+    const seen = id => progress.emailsSeen[id] || 0;
+    const pick = (list, n) => shuffle(list).sort((a, b) => seen(a.id) - seen(b.id)).slice(0, n);
+    const legit = pick(EMAILS.filter(e => !e.phish), LEGIT_PER_ROUND);
+    const phish = pick(EMAILS.filter(e => e.phish), ROUND_SIZE - LEGIT_PER_ROUND);
+    return shuffle(legit.concat(phish));
+  }
+
+  function startRound() {
+    let time = Date.now();
+    const items = pickEmails().map(email => {
+      time -= (12 + Math.random() * 160) * 60000; // newest first, spaced out like a real inbox
+      return { id: email.id, time, answer: null, flags: new Set(), opened: false, detailsOpen: false, points: 0 };
+    });
+    round = { items, current: 0, score: 0, finished: false };
+
+    if (location.hash !== '#train') location.hash = '#train';
+    $('#intro').hidden = true;
+    $('#results').hidden = true;
+    $('#trainer').hidden = false;
+    renderTrainer();
+    $('#mail-subject').focus();
+  }
+
+  function selectEmail(index) {
+    round.current = index;
+    renderTrainer();
+    if (window.innerWidth < 900) $('#reader').scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'auto' : 'smooth' });
+  }
+
+  function goNext() {
+    if (!currentItem().answer) return;
+    const n = round.items.length;
+    for (let step = 1; step <= n; step++) {
+      const i = (round.current + step) % n;
+      if (!round.items[i].answer) {
+        selectEmail(i);
+        $('#mail-subject').focus();
+        return;
+      }
+    }
+    finishRound();
+  }
+
+  /* ===== 4. Rendering an email ===== */
+
+  function formatTime(ts, long) {
+    const d = new Date(ts);
+    const now = new Date();
+    const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    if (d.toDateString() === now.toDateString()) return time;
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (d.toDateString() === yesterday.toDateString()) return long ? `Yesterday, ${time}` : 'Yesterday';
+    return d.toLocaleDateString('en-GB', long ? { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' } : { weekday: 'short' });
+  }
+
+  function initials(name) {
+    const words = name.replace(/[^a-z0-9 ]/gi, '').split(/\s+/).filter(Boolean);
+    return ((words[0] || '?')[0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
+  }
+
+  function renderTrainer() {
+    closeLinkPop();
+    renderRoundBar();
+    renderInbox();
+    renderEmail();
+    renderDebrief();
+    renderVerdictBar();
+  }
+
+  function renderRoundBar() {
+    const answered = round.items.filter(i => i.answer).length;
+    $('#round-count').textContent = `${answered} of ${round.items.length} answered`;
+    $('#score').textContent = round.score;
+
+    $('#round-dots').replaceChildren(...round.items.map((item, i) => {
+      const status = !item.answer ? 'not answered' : item.correct ? 'correct' : 'incorrect';
+      const btn = el('button', {
+        type: 'button',
+        class: item.answer ? (item.correct ? 'is-right' : 'is-wrong') : '',
+        'aria-label': `Email ${i + 1}, ${status}`,
+        'aria-current': i === round.current ? 'true' : false,
+        'data-index': i
+      }, item.answer ? (item.correct ? '✓' : '✗') : String(i + 1));
+      return el('li', {}, btn);
+    }));
+  }
+
+  function renderInbox() {
+    $('#inbox-list').replaceChildren(...round.items.map((item, i) => {
+      const email = emailById.get(item.id);
+      const result = item.answer
+        ? el('span', { class: 'inbox-result ' + (item.correct ? 'is-right' : 'is-wrong'), text: item.correct ? `right, +${item.points}` : `wrong, +${item.points}` })
+        : null;
+      const btn = el('button', {
+        type: 'button',
+        class: 'inbox-item' + (item.answer ? '' : ' is-unread'),
+        'aria-current': i === round.current ? 'true' : false,
+        'data-index': i
+      },
+        el('span', { class: 'inbox-from', text: email.from.name }),
+        el('span', { class: 'inbox-time', text: formatTime(item.time) }),
+        el('span', { class: 'inbox-subject', text: email.subject.text }),
+        result
+      );
+      return el('li', {}, btn);
+    }));
+  }
+
+  // Every highlightable element gets the same treatment, so being clickable
+  // never gives away whether something is a red flag.
+  function makeSpot(node, spot, answered) {
+    node.dataset.spot = spot;
+    node.classList.add('spot');
+    if (node.tagName !== 'A') {
+      if (answered) {
+        node.removeAttribute('role');
+        node.removeAttribute('tabindex');
+        node.removeAttribute('aria-pressed');
+      } else {
+        node.setAttribute('role', 'button');
+        node.setAttribute('tabindex', '0');
+      }
+    }
+    return node;
+  }
+
+  function renderEmail() {
+    const item = currentItem();
+    const email = currentEmail();
+    const answered = Boolean(item.answer);
+    const reader = $('#reader');
+    reader.classList.toggle('is-answered', answered);
+
+    makeSpot($('#mail-subject'), 'subject', answered).textContent = email.subject.text;
+    makeSpot($('#mail-from'), 'from', answered).textContent = email.from.name;
+
+    const avatar = $('#mail-avatar');
+    avatar.textContent = initials(email.from.name);
+    avatar.style.setProperty('--hue', hashString(email.from.name) % 360);
+
+    const time = $('#mail-time');
+    time.textContent = formatTime(item.time, true);
+    time.dateTime = new Date(item.time).toISOString();
+
+    // Sender details, collapsed by default like most mail apps
+    const details = $('#mail-details');
+    const row = (label, value) => [el('dt', { text: label }), el('dd', {}, value)];
+    details.replaceChildren(
+      ...row('From', makeSpot(el('span', {}, `${email.from.name} <`, el('span', { class: 'addr' }, domainMarkup(email.from.email)), '>'), 'from', answered)),
+      ...(email.replyTo ? row('Reply-To', makeSpot(el('span', { class: 'addr' }, domainMarkup(email.replyTo.email)), 'replyTo', answered)) : []),
+      ...row('To', el('span', { class: 'addr', text: MY_ADDRESS })),
+      ...row('Date', formatTime(item.time, true))
+    );
+    details.hidden = !item.detailsOpen;
+    const toggle = $('#details-toggle');
+    toggle.setAttribute('aria-expanded', String(item.detailsOpen));
+    toggle.textContent = item.detailsOpen ? 'Hide details' : 'Show details';
+
+    $('#mail-body').replaceChildren(...email.blocks.map(block => renderBlock(block, email, answered)));
+
+    applySpotStates();
+    clearStatus();
+  }
+
+  const ATTACHMENT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+
+  function renderBlock(block, email, answered) {
+    if (block.link) {
+      const link = el('a', {
+        href: block.href,
+        class: 'mail-link' + (block.cta ? ' is-cta' : ''),
+        'data-href': block.href,
+        'aria-haspopup': 'dialog',
+        text: block.link
+      });
+      makeSpot(link, block.spot, answered);
+      return el('p', {}, link);
+    }
+    if (block.attach) {
+      const box = el('div', { class: 'attachment', 'aria-label': `Attachment: ${block.attach}, ${block.size}` });
+      box.insertAdjacentHTML('afterbegin', ATTACHMENT_ICON); // static icon, not data
+      box.append(el('span', {}, el('span', { class: 'attachment-name', text: block.attach }), el('span', { class: 'attachment-size', text: block.size })));
+      return makeSpot(box, block.spot, answered);
+    }
+    if (block.qr) {
+      const fig = el('figure', { class: 'qr', 'aria-label': 'QR code' });
+      fig.insertAdjacentHTML('afterbegin', qrSvg(email.id)); // generated from numbers, not data
+      fig.append(el('figcaption', { text: 'Scan with your phone camera' }));
+      return makeSpot(fig, block.spot, answered);
+    }
+    if (block.sig) return makeSpot(el('p', { class: 'mail-sig', text: block.sig }), block.spot, answered);
+    return makeSpot(el('p', { text: block.p }), block.spot, answered);
+  }
+
+  // A decorative, QR-shaped pattern (it doesn't encode anything scannable).
+  function qrSvg(seed) {
+    const size = 25;
+    let s = hashString(seed) || 1;
+    const rand = () => ((s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296);
+    const finders = [[0, 0], [size - 7, 0], [0, size - 7]];
+    let path = '';
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        let dark;
+        const f = finders.find(([fx, fy]) => x >= fx - 1 && x <= fx + 7 && y >= fy - 1 && y <= fy + 7);
+        if (f) {
+          const dx = x - f[0];
+          const dy = y - f[1];
+          const inside = dx >= 0 && dx <= 6 && dy >= 0 && dy <= 6;
+          dark = inside && (dx === 0 || dx === 6 || dy === 0 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4));
+        } else {
+          dark = rand() < 0.48;
+        }
+        if (dark) path += `M${x} ${y}h1v1h-1z`;
+      }
+    }
+    return `<svg viewBox="-2 -2 ${size + 4} ${size + 4}" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><rect x="-2" y="-2" width="${size + 4}" height="${size + 4}" fill="#fff"/><path d="${path}" fill="#10293a"/></svg>`;
+  }
+
+  function applySpotStates() {
+    const item = currentItem();
+    const email = currentEmail();
+    const answered = Boolean(item.answer);
+
+    $$('#reader [data-spot]').forEach(node => {
+      const spot = node.dataset.spot;
+      const flagged = item.flags.has(spot);
+      const real = email.flagBySpot.get(spot);
+      node.classList.toggle('is-flagged', flagged);
+      node.classList.toggle('is-redflag', answered && Boolean(real));
+      node.classList.toggle('is-missed', answered && Boolean(real) && !flagged);
+      node.classList.toggle('is-false', answered && !real && flagged);
+      if (answered && real) node.dataset.n = real.n;
+      else delete node.dataset.n;
+      if (!answered && node.tagName !== 'A') node.setAttribute('aria-pressed', String(flagged));
+    });
+  }
+
+  function toggleFlag(spot) {
+    const item = currentItem();
+    if (item.answer) return;
+    if (item.flags.has(spot)) {
+      item.flags.delete(spot);
+      announce('Highlight removed');
+    } else {
+      item.flags.add(spot);
+      announce('Highlighted as suspicious');
+    }
+    applySpotStates();
+    renderVerdictBar();
+  }
+
+  function renderVerdictBar() {
+    const item = currentItem();
+    const answered = Boolean(item.answer);
+    $('#btn-legit').hidden = answered;
+    $('#btn-phish').hidden = answered;
+    $('#btn-next').hidden = !answered;
+
+    const remaining = round.items.filter(i => !i.answer).length;
+    $('#btn-next-label').textContent = remaining ? 'Next email' : 'See your results';
+
+    const hint = $('#flag-hint');
+    if (answered) {
+      hint.replaceChildren(remaining ? `${plural(remaining, 'email')} left in this round.` : 'That was the last one.');
+    } else if (item.flags.size) {
+      hint.replaceChildren(el('strong', { text: `${item.flags.size} highlighted.` }), ' Click again to remove a highlight, or make your call.');
+    } else {
+      hint.replaceChildren('Click anything that looks suspicious to highlight it, then make your call.');
+    }
+  }
+
+  /* ===== 5. Link checking and status bar ===== */
+
+  const pop = $('#link-pop');
+  let popLink = null;
+
+  function openLinkPop(link) {
+    const item = currentItem();
+    const href = link.dataset.href;
+    const host = hostOf(href);
+    popLink = link;
+
+    pop.replaceChildren(
+      el('p', { class: 'pop-label', text: 'This link goes to' }),
+      el('p', { class: 'pop-url' }, domainMarkup(href)),
+      el('p', { class: 'pop-site' }, 'Website: ', el('strong', { text: host ? registrableDomain(host) : href })),
+      el('div', { class: 'pop-actions' },
+        item.answer ? null : el('button', { type: 'button', class: 'btn btn-small btn-mark', 'data-pop': 'flag' }, item.flags.has(link.dataset.spot) ? 'Remove highlight' : 'Highlight as suspicious'),
+        el('button', { type: 'button', class: 'btn btn-small btn-quiet', 'data-pop': 'open' }, 'Open link')
+      ),
+      el('p', { class: 'pop-result', 'aria-live': 'polite' }),
+      el('button', { type: 'button', class: 'pop-close', 'data-pop': 'close', 'aria-label': 'Close' }, '×')
+    );
+
+    const reader = $('#reader');
+    const r = reader.getBoundingClientRect();
+    const l = link.getBoundingClientRect();
+    pop.hidden = false;
+    const maxLeft = r.width - pop.offsetWidth - 8;
+    pop.style.left = Math.max(8, Math.min(l.left - r.left, maxLeft)) + 'px';
+    pop.style.top = (l.bottom - r.top + 8) + 'px';
+    pop.querySelector('button').focus();
+  }
+
+  function closeLinkPop(returnFocus) {
+    if (pop.hidden) return;
+    pop.hidden = true;
+    if (returnFocus && popLink && document.contains(popLink)) popLink.focus();
+    popLink = null;
+  }
+
+  function openLinkFromPop() {
+    const item = currentItem();
+    const email = currentEmail();
+    const host = hostOf(popLink.dataset.href);
+    const site = host ? registrableDomain(host) : 'that address';
+    const result = pop.querySelector('.pop-result');
+
+    if (email.phish) {
+      if (!item.answer) item.opened = true;
+      result.className = 'pop-result is-danger';
+      result.textContent = `Caught. In a real inbox this would have opened a page on ${site}, built to look genuine and capture whatever you type. Opening a link isn't always the end of the world, but entering a password or card details there would be.` + (item.answer ? '' : ` (${POINTS.openedPhish} points)`);
+    } else {
+      result.className = 'pop-result is-safe';
+      result.textContent = `This goes to ${site}, the organisation's real website. Even so, the safest habit is to visit sites by typing the address or using the app, rather than following links in emails.`;
+    }
+  }
+
+  const statusBar = $('#status-bar');
+
+  function showStatus(href) {
+    statusBar.classList.add('is-active');
+    statusBar.replaceChildren(domainMarkup(href));
+  }
+
+  function clearStatus() {
+    statusBar.classList.remove('is-active');
+    statusBar.replaceChildren(el('span', { class: 'status-empty', text: 'Hover over a link to see where it really goes. On a touchscreen, tap it.' }));
+  }
+
+  /* ===== 6. Verdicts and debrief ===== */
+
+  function giveVerdict(choice) {
+    if (!round) return;
+    const item = currentItem();
+    if (item.answer) return;
+    const email = currentEmail();
+    closeLinkPop();
+
+    item.answer = choice;
+    item.correct = (choice === 'phish') === email.phish;
+    item.found = email.flags.filter(f => item.flags.has(f.spot)).length;
+    item.falseFlags = Array.from(item.flags).filter(s => !email.flagBySpot.has(s)).length;
+    item.openedPhish = item.opened && email.phish;
+    // Open the sender details if some of the evidence is hidden in them.
+    if (email.flagBySpot.has('from') || email.flagBySpot.has('replyTo')) item.detailsOpen = true;
+
+    const points = (item.correct ? POINTS.verdict : 0)
+      + item.found * POINTS.flag
+      + item.falseFlags * POINTS.falseFlag
+      + (item.openedPhish ? POINTS.openedPhish : 0);
+    item.points = Math.max(0, points);
+    round.score += item.points;
+
+    renderTrainer();
+    const title = $('#debrief-title');
+    title.focus({ preventScroll: true });
+    $('#debrief').scrollIntoView({ block: 'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' });
+  }
+
+  function renderDebrief() {
+    const box = $('#debrief');
+    const item = currentItem();
+    const email = currentEmail();
+    if (!item.answer) {
+      box.hidden = true;
+      return;
+    }
+
+    const kind = email.phish ? 'phishing' : 'legitimate';
+    const parts = [
+      el('div', { class: 'debrief-head' },
+        el('h3', { id: 'debrief-title', tabindex: '-1', text: item.correct ? `Correct: this one is ${kind}.` : `Not quite: this one is ${kind}.` }),
+        el('span', { class: 'debrief-points', 'aria-label': `${item.points} points` }, `+${item.points}`)
+      ),
+      el('p', { class: 'debrief-lesson', text: email.lesson })
+    ];
+
+    if (email.phish) {
+      parts.push(
+        el('h4', { text: `What gave it away (you highlighted ${item.found} of ${email.flags.length})` }),
+        el('ol', { class: 'flag-list' }, email.flags.map(f => {
+          const tactic = tacticById.get(f.tactic);
+          const spotted = item.flags.has(f.spot);
+          return el('li', {},
+            el('span', { class: 'flag-num', 'aria-hidden': 'true', text: f.n }),
+            el('div', { class: 'flag-title' },
+              el('a', { href: `#guide/${f.tactic}`, text: tactic ? tactic.name : f.tactic }),
+              el('span', { class: 'flag-status ' + (spotted ? 'is-spotted' : 'is-missed'), text: spotted ? 'you spotted this' : 'missed' })
+            ),
+            el('p', { class: 'flag-note', text: f.note })
+          );
+        }))
+      );
+    } else {
+      parts.push(
+        el('h4', { text: 'Why it checks out' }),
+        el('ul', { class: 'good-list' }, (email.good || []).map(g => el('li', { text: g })))
+      );
+    }
+
+    if (item.falseFlags) {
+      parts.push(el('p', { class: 'debrief-aside' },
+        `You also highlighted ${plural(item.falseFlags, 'thing')} that ${item.falseFlags === 1 ? 'was' : 'were'} fine (shaded grey above, ${POINTS.falseFlag} points each). Caution is good, but knowing what normal looks like matters too.`));
+    }
+    if (item.openedPhish) {
+      parts.push(el('p', { class: 'debrief-aside is-danger', text: `You opened a link in this email before deciding (${POINTS.openedPhish} points). Next time, read where it goes and leave it there.` }));
+    }
+    if (email.phish && item.correct && item.found === 0) {
+      parts.push(el('p', { class: 'debrief-aside', text: `Right call. Next time, try highlighting the red flags before you decide: each one you catch is worth ${POINTS.flag} points.` }));
+    }
+
+    box.className = 'debrief ' + (item.correct ? 'is-right' : 'is-wrong');
+    box.replaceChildren(...parts);
+    box.hidden = false;
+  }
+
+  /* ===== 7. Results, progress and field guide ===== */
+
+  function summarise(r) {
+    const s = { score: r.score, total: r.items.length, correct: 0, found: 0, flagTotal: 0, opened: 0, missedByTactic: {} };
+    r.items.forEach(item => {
+      const email = emailById.get(item.id);
+      if (item.correct) s.correct++;
+      if (item.openedPhish) s.opened++;
+      email.flags.forEach(f => {
+        s.flagTotal++;
+        if (item.flags.has(f.spot)) s.found++;
+        else s.missedByTactic[f.tactic] = (s.missedByTactic[f.tactic] || 0) + 1;
+      });
+    });
+    s.max = s.total * POINTS.verdict + s.flagTotal * POINTS.flag;
+    return s;
+  }
+
+  function grade(pct) {
+    if (pct >= 0.85) return 'A';
+    if (pct >= 0.7) return 'B';
+    if (pct >= 0.55) return 'C';
+    if (pct >= 0.4) return 'D';
+    return 'See me';
+  }
+
+  function finishRound() {
+    const s = summarise(round);
+    if (!round.finished) {
+      round.finished = true;
+      progress.rounds.push({ at: Date.now(), score: s.score, max: s.max, correct: s.correct, total: s.total, found: s.found, flagTotal: s.flagTotal, opened: s.opened });
+      progress.rounds = progress.rounds.slice(-50);
+      round.items.forEach(item => {
+        const email = emailById.get(item.id);
+        progress.emailsSeen[item.id] = (progress.emailsSeen[item.id] || 0) + 1;
+        email.flags.forEach(f => {
+          const t = progress.tactics[f.tactic] || (progress.tactics[f.tactic] = { seen: 0, spotted: 0 });
+          t.seen++;
+          if (item.flags.has(f.spot)) t.spotted++;
+        });
+      });
+      saveProgress();
+    }
+    renderResults(s);
+  }
+
+  function renderResults(s) {
+    const g = grade(s.score / s.max);
+    const missed = Object.entries(s.missedByTactic).sort((a, b) => b[1] - a[1]);
+
+    const revisit = missed.length
+      ? [
+          el('h3', { text: 'Worth revisiting' }),
+          el('ul', { class: 'revisit' }, missed.map(([id, n]) =>
+            el('li', {}, el('a', { href: `#guide/${id}`, text: tacticById.get(id).name }), ` (missed ${n === 1 ? 'once' : n + ' times'})`)))
+        ]
+      : [el('p', { text: "You didn't miss a single red flag. Impressive." })];
+
+    const box = $('#results');
+    box.replaceChildren(el('div', { class: 'results-paper' },
+      el('span', { class: 'grade' + (g.length > 1 ? ' is-long' : ''), 'aria-label': `Grade: ${g}` }, g),
+      el('h2', { id: 'results-title', tabindex: '-1', text: 'Round complete' }),
+      el('p', { class: 'results-score', text: `${s.score} points out of a possible ${s.max}.` }),
+      el('dl', { class: 'stat-grid' },
+        el('div', { class: 'stat' }, el('dt', { text: 'Right calls' }), el('dd', { text: `${s.correct} of ${s.total}` })),
+        el('div', { class: 'stat' }, el('dt', { text: 'Red flags highlighted' }), el('dd', { text: `${s.found} of ${s.flagTotal}` })),
+        el('div', { class: 'stat' }, el('dt', { text: 'Phishing links opened' }), el('dd', { text: String(s.opened) }))
+      ),
+      ...revisit,
+      el('div', { class: 'actions-row' },
+        el('button', { type: 'button', class: 'btn btn-primary', 'data-action': 'start' }, 'Start a new round'),
+        el('button', { type: 'button', class: 'btn btn-quiet', 'data-action': 'review' }, 'Review this round'),
+        el('a', { class: 'btn btn-quiet', href: '#progress' }, 'See your progress')
+      )
+    ));
+
+    $('#trainer').hidden = true;
+    box.hidden = false;
+    window.scrollTo(0, 0);
+    $('#results-title').focus();
+  }
+
+  function reviewRound() {
+    $('#results').hidden = true;
+    $('#trainer').hidden = false;
+    round.current = 0;
+    renderTrainer();
+  }
+
+  let guideBuilt = false;
+
+  function renderGuide(anchor) {
+    const list = $('#guide-list');
+    if (!guideBuilt) {
+      list.replaceChildren(...DATA.TACTICS.map(t => el('article', { class: 'tactic', id: 'tactic-' + t.id, tabindex: '-1' },
+        el('h3', { text: t.name }),
+        el('p', { class: 'tactic-summary', text: t.summary }),
+        el('dl', {},
+          el('dt', { text: 'What it looks like' }),
+          el('dd', {}, t.examples.map(x => el('code', { class: 'tactic-example' }, domainMarkup(x)))),
+          el('dt', { text: 'How to check' }),
+          el('dd', { text: t.check })
+        ),
+        el('p', { class: 'tactic-mastery', 'data-mastery': t.id })
+      )));
+      guideBuilt = true;
+    }
+
+    $$('[data-mastery]', list).forEach(node => {
+      const stat = progress.tactics[node.dataset.mastery];
+      node.textContent = stat && stat.seen
+        ? `You've caught ${stat.spotted} of the ${stat.seen} you've seen`
+        : 'Not met in training yet';
+    });
+
+    const target = anchor && document.getElementById('tactic-' + anchor);
+    if (target) {
+      target.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'auto' : 'smooth' });
+      target.focus({ preventScroll: true });
+      target.classList.add('is-target');
+      window.setTimeout(() => target.classList.remove('is-target'), 900);
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function renderProgress() {
+    const body = $('#progress-body');
+    const rounds = progress.rounds;
+
+    if (!rounds.length) {
+      body.replaceChildren(el('div', { class: 'empty' },
+        el('p', { text: 'No rounds yet. Finish one and your scores, plus the red flags you tend to miss, will appear here.' }),
+        el('button', { type: 'button', class: 'btn btn-primary', 'data-action': 'start' }, 'Start a round')
+      ));
+      return;
+    }
+
+    const sum = key => rounds.reduce((n, r) => n + r[key], 0);
+    const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0) + '%';
+    const best = Math.max(...rounds.map(r => r.score));
+
+    const tactics = Object.entries(progress.tactics)
+      .filter(([id, t]) => t.seen && tacticById.has(id))
+      .map(([id, t]) => ({ id, ...t, rate: t.spotted / t.seen }))
+      .sort((a, b) => a.rate - b.rate || b.seen - a.seen);
+
+    const recent = rounds.slice(-8).reverse();
+
+    body.replaceChildren(
+      el('dl', { class: 'stat-grid' },
+        el('div', { class: 'stat' }, el('dt', { text: 'Rounds played' }), el('dd', { text: String(rounds.length) })),
+        el('div', { class: 'stat' }, el('dt', { text: 'Best score' }), el('dd', { text: String(best) })),
+        el('div', { class: 'stat' }, el('dt', { text: 'Right calls' }), el('dd', { text: pct(sum('correct'), sum('total')) })),
+        el('div', { class: 'stat' }, el('dt', { text: 'Red flags highlighted' }), el('dd', { text: pct(sum('found'), sum('flagTotal')) }))
+      ),
+      el('section', { class: 'progress-section', 'aria-labelledby': 'mastery-title' },
+        el('h2', { id: 'mastery-title', text: 'Red flags by type' }),
+        el('p', { text: 'Weakest first. Each bar shows how often you highlighted that kind of red flag when it appeared.' }),
+        el('ul', { class: 'mastery-list' }, tactics.map(t => el('li', {},
+          el('a', { href: `#guide/${t.id}`, text: tacticById.get(t.id).name }),
+          el('span', { class: 'bar' + (t.rate < 0.5 ? ' is-low' : ''), role: 'img', 'aria-label': `${pct(t.spotted, t.seen)} spotted` },
+            el('span', { style: `width: ${Math.round(t.rate * 100)}%` })),
+          el('span', { class: 'mastery-count', text: `${t.spotted}/${t.seen}` })
+        )))
+      ),
+      el('section', { class: 'progress-section', 'aria-labelledby': 'recent-title' },
+        el('h2', { id: 'recent-title', text: 'Recent rounds' }),
+        el('div', { class: 'table-wrap' }, el('table', { class: 'rounds-table' },
+          el('thead', {}, el('tr', {}, ['Date', 'Score', 'Right calls', 'Red flags'].map(h => el('th', { scope: 'col', text: h })))),
+          el('tbody', {}, recent.map(r => el('tr', {},
+            el('td', { text: new Date(r.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }),
+            el('td', { text: `${r.score} / ${r.max}` }),
+            el('td', { text: `${r.correct} of ${r.total}` }),
+            el('td', { text: `${r.found} of ${r.flagTotal}` })
+          )))
+        ))
+      ),
+      el('div', { class: 'actions-row' },
+        el('button', { type: 'button', class: 'btn btn-primary', 'data-action': 'start' }, 'Start a round'),
+        el('button', { type: 'button', class: 'btn btn-quiet', 'data-action': 'reset' }, 'Reset progress')
+      )
+    );
+  }
+
+  /* ===== 8. Events ===== */
+
+  // Global buttons: start, review, reset
+  document.addEventListener('click', e => {
+    const action = e.target.closest('[data-action]');
+    if (!action) return;
+    const name = action.dataset.action;
+    if (name === 'start') startRound();
+    if (name === 'review') reviewRound();
+    if (name === 'reset' && window.confirm('Reset all your progress? This can\'t be undone.')) {
+      progress = freshProgress();
+      saveProgress();
+      renderProgress();
+      announce('Progress reset');
+    }
+  });
+
+  // Skip link: focus main content without changing the route
+  $('[data-skip]').addEventListener('click', e => {
     e.preventDefault();
-
-    // remove active from all views and links
-    views.forEach(v => v.classList.remove("active"));
-    navLinks.forEach(l => l.classList.remove("active"));
-
-    // activate the clicked one
-    const target = this.dataset.view;
-    document.getElementById("view-" + target).classList.add("active");
-    this.classList.add("active");
+    $('#main').focus();
   });
-});
 
-// interaction bits
-const legitBtn = document.getElementById("btn-legit");
-const phishBtn = document.getElementById("btn-phish");
-const nextBtn = document.getElementById("btn-next");
-const feedbackEl = document.getElementById("feedback");
-const scoreEl = document.getElementById("score");
-const actionsEl = document.getElementById("actions");
-
-// Username input - captures the user's name before training begins.
-// The name is stored in userName and used to personalise email bodies and the end screen,
-// making the training more realistic and demonstrating input/output functionality.
-let userName = "";
-
-const nameScreen = document.getElementById("name-screen");
-const trainingContent = document.getElementById("training-content");
-const startBtn = document.getElementById("btn-start");
-const usernameInput = document.getElementById("username-input");
-
-startBtn.addEventListener("click", function () {
-  const entered = usernameInput.value.trim();
-  userName = entered !== "" ? entered : "there";
-  nameScreen.style.display = "none";
-  trainingContent.style.display = "";
-  renderEmail(emails[currentEmailIndex]);
-});
-
-// Allow Enter key to submit name and start training
-usernameInput.addEventListener("keydown", function (e) {
-  if (e.key === "Enter") startBtn.click();
-});
-
-// Score tracking
-let score = 0;
-let currentEmailIndex = 0;
-
-// Hardcoded email objects - each with from, subject, body, isPhishing boolean, and explanation for educational feedback.
-// Body is defined as an arrow function so that userName is evaluated at render time,
-// after the user has entered their name on the name screen, rather than at definition time.
-const email1 = {
-  from: "IT Support <it-support@university-helpdesk.com>",
-  subject: "Urgent: Password Expiry Notice",
-  body: () => `
-    <p>Hello ${userName},</p>
-    <p>Your password will expire today. Please reset it immediately to avoid losing access.</p>
-    <p><a href="university-helpdesk.com/harvest-credentials" onclick="handlePhishingLink('students.plymouth.ac.uk/reset-password', 'university-helpdesk.com/harvest-credentials'); return false;">Reset Password</a></p>
-    <p>Regards,<br>IT Support</p>
-  `,
-  isPhishing: true,
-  explanation: "Creates urgency, uses a suspicious domain, and includes a link to reset the password."
-};
-
-const email2 = {
-  from: "University IT Services <itservices@plymouth.ac.uk>",
-  subject: "Scheduled Maintenance This Weekend",
-  body: () => `
-    <p>Hello ${userName},</p>
-    <p>Please be aware that scheduled maintenance will take place this Saturday between 22:00 and 02:00.</p>
-    <p>During this time, access to some systems may be intermittent.</p>
-    <p>You can check live system status at any time on the <a href="https://status.plymouth.ac.uk">IT Status Page</a>.</p>
-    <p>Kind regards,<br>Plymouth University IT Services</p>
-  `,
-  isPhishing: false,
-  explanation: "Uses an official domain, provides advance notice, links to an official university status page, and does not request any personal information."
-};
-
-const email3 = {
-  from: "Parcel Service <delivery-update@parcel-tracking.co>",
-  subject: "Delivery Failed - Action Required",
-  body: () => `
-    <p>We were unable to deliver your parcel due to an address issue.</p>
-    <p>Please confirm your details to reschedule delivery.</p>
-    <p><a href="parcel-tracking.co/steal-details" onclick="handlePhishingLink('royalmail.com/redeliver', 'parcel-tracking.co/steal-details'); return false;">Confirm Delivery</a></p>
-  `,
-  isPhishing: true,
-  explanation: "Creates urgency and uses a vague sender domain with a suspicious link."
-};
-
-const email4 = {
-  from: "Security Team <security@account-alerts.com>",
-  subject: "Unusual Login Attempt Detected",
-  body: () => `
-    <p>We detected an unusual login attempt on your account.</p>
-    <p>If this was not you, please secure your account immediately.</p>
-    <p><a href="account-alerts.com/steal-credentials" onclick="handlePhishingLink('myaccount.google.com/security', 'account-alerts.com/steal-credentials'); return false;">Secure Account</a></p>
-  `,
-  isPhishing: true,
-  explanation: "Generic greeting, pressure tactics, and non-official sender domain."
-};
-
-const email5 = {
-  from: "University Library <library@plymouth.ac.uk>",
-  subject: "Library Book Due Reminder",
-  body: () => `
-    <p>Hello ${userName},</p>
-    <p>This is a reminder that one or more of your borrowed library books are due in three days.</p>
-    <p>You can renew your books through the library portal.</p>
-    <p>Thank you,<br>University Library</p>
-  `,
-  isPhishing: false,
-  explanation: "No links demanding action and references an existing service the user already uses."
-};
-
-const email6 = {
-  from: "Accounts Department <billing@payment-secure.net>",
-  subject: "Outstanding Balance - Immediate Payment Required",
-  body: () => `
-    <p>Your account shows an outstanding balance.</p>
-    <p>Failure to pay within 24 hours will result in deletion of account.</p>
-    <p><a href="payment-secure.net/steal-card-details" onclick="handlePhishingLink('secure-payments.com/pay-now', 'payment-secure.net/steal-card-details'); return false;">Make Payment</a></p>
-  `,
-  isPhishing: true,
-  explanation: "Threatening language, short deadline, and generic sender identity."
-};
-
-const email7 = {
-  from: "Dr. Emmanuel Osei <e.osei.legal@gmail.com>",
-  subject: "Confidential Legal Matter Requiring Your Assistance",
-  body: () => `
-    <p>Dear Friend,</p>
-    <p>I am a solicitor based in Accra, Ghana. My late client, who shares your surname, passed away intestate leaving an estate valued at $4,200,000 USD.</p>
-    <p>As no next of kin has been located, I am seeking a foreign partner to assist with the legal transfer of these funds. You will receive 35% as compensation.</p>
-    <p>This matter is strictly confidential. Please respond with your full name and contact details.</p>
-    <p>Yours faithfully,<br>Dr. Emmanuel Osei</p>
-  `,
-  isPhishing: true,
-  explanation: "Classic advance-fee fraud; uses a professional title and legal framing to appear credible. Requests personal details and promises an unrealistic financial reward for no legitimate reason."
-};
-
-const email8 = {
-  from: "HMRC <tax-refund@hmrc-refunds.co.uk>",
-  subject: "You Are Entitled to a Tax Refund of £342.50",
-  body: () => `
-    <p>Dear ${userName},</p>
-    <p>Following a review of your tax records, we have determined that you are entitled to a refund of <strong>£342.50</strong>.</p>
-    <p>To claim your refund, please verify your bank details within 14 days.</p>
-    <p><a href="hmrc-refunds.co.uk/claim" onclick="handlePhishingLink('gov.uk/claim-tax-refund', 'hmrc-refunds.co.uk/claim'); return false;">Claim Your Refund</a></p>
-    <p>HM Revenue and Customs</p>
-  `,
-  isPhishing: true,
-  explanation: "HMRC never contacts taxpayers about refunds by email. The domain is hmrc-refunds.co.uk rather than the official gov.uk; a classic impersonation tactic targeting people expecting a refund."
-};
-
-const email9 = {
-  from: "Student Finance England <notifications@studentfinance.gov.uk>",
-  subject: "Your Student Loan Payment Is Ready",
-  body: () => `
-    <p>Hello ${userName},</p>
-    <p>Your next student loan instalment has been processed and will arrive in your account within 3-5 working days.</p>
-    <p>No action is required. If you have any queries, visit the Student Finance portal directly.</p>
-    <p>Kind regards,<br>Student Finance England</p>
-  `,
-  isPhishing: false,
-  explanation: "Uses an official .gov.uk domain, requires no action, and contains no suspicious links."
-};
-
-const email10 = {
-  from: "Student Finance <loan-update@studentfinance-secure.co.uk>",
-  subject: "Action Required: Verify Your Loan Details",
-  body: () => `
-    <p>Dear ${userName},</p>
-    <p>We have been unable to verify your loan details. Your next payment may be delayed.</p>
-    <p>Please verify your information immediately to avoid disruption to your funding.</p>
-    <p><a href="studentfinance-secure.co.uk/harvest-details" onclick="handlePhishingLink('studentfinance.gov.uk/verify', 'studentfinance-secure.co.uk/harvest-details'); return false;">Verify Now</a></p>
-    <p>Student Finance Support Team</p>
-  `,
-  isPhishing: true,
-  explanation: "Impersonates Student Finance but uses a non-government domain. Creates financial anxiety to pressure the user into clicking."
-};
-
-const email11 = {
-  from: "Spotify <no-reply@spotify.com>",
-  subject: "Your receipt from Spotify",
-  body: () => `
-    <p>Hi ${userName},</p>
-    <p>Thanks for your payment. Your Spotify Premium subscription has been renewed for another month.</p>
-    <p>Amount charged: £10.99</p>
-    <p>If you did not authorise this, you can manage your subscription in your account settings.</p>
-    <p>The Spotify Team</p>
-  `,
-  isPhishing: false,
-  explanation: "Comes from an official Spotify domain, contains no urgent links demanding credentials, and refers to an expected transaction."
-};
-
-const email12 = {
-  from: "Spotify <no-reply@spotify.com>",
-  subject: "Your Spotify Family Plan Invite",
-  body: () => `
-    <p>Hi ${userName},</p>
-    <p>Someone has invited you to join their Spotify Premium Family plan.</p>
-    <p>Family plan members need to confirm they live at the same address as the plan manager.</p>
-    <p>Accept the invite and confirm your address through your <a href="https://spotify.com/account">Spotify account page</a>.</p>
-    <p>The Spotify Team</p>
-  `,
-  isPhishing: false,
-  explanation: "Comes from Spotify's official domain, links directly to the official spotify.com account page, and does not ask for credentials or payment details."
-};
-
-const email13 = {
-  from: "DLE Support <dle-support@plymouth.ac.uk>",
-  subject: "Planned DLE Downtime - Friday Evening",
-  body: () => `
-    <p>Hello ${userName},</p>
-    <p>Please note that the DLE will be unavailable on Friday between 18:00 and 20:00 for scheduled maintenance.</p>
-    <p>We recommend downloading any materials you need before this time.</p>
-    <p>Apologies for any inconvenience.<br>DLE Support Team</p>
-  `,
-  isPhishing: false,
-  explanation: "Official university domain, no action required, and simply informs about a routine maintenance window."
-};
-
-const email14 = {
-  from: "Microsoft Account <security@microsofft-account.com>",
-  subject: "Your Microsoft Account Has Been Locked",
-  body: () => `
-    <p>Dear ${userName},</p>
-    <p>Your Microsoft account has been temporarily locked due to suspicious activity.</p>
-    <p>Click below to verify your identity and restore access.</p>
-    <p><a href="microsofft-account.com/steal-credentials" onclick="handlePhishingLink('login.microsoft.com/verify-identity', 'microsofft-account.com/steal-credentials'); return false;">Unlock My Account</a></p>
-    <p>Microsoft Security Team</p>
-  `,
-  isPhishing: true,
-  explanation: "Sender domain has a double 'f' in 'microsofft' - a classic typosquat. Locking accounts to create panic is a common phishing tactic."
-};
-
-const email15 = {
-  from: "GitHub <noreply@github.com>",
-  subject: "Your pull request was merged",
-  body: () => `
-    <p>Hi ${userName},</p>
-    <p>Your pull request <strong>#42 - Fix navigation bug</strong> was merged into main by a collaborator.</p>
-    <p>You can view the changes in your repository.</p>
-    <p>The GitHub Team</p>
-  `,
-  isPhishing: false,
-  explanation: "Comes from GitHub's official domain and references a specific, expected event with no request for credentials."
-};
-
-const email16 = {
-  from: "PayPal <service@paypal-customer-support.org>",
-  subject: "Your Account Has Been Suspended",
-  body: () => `
-    <p>Dear ${userName},</p>
-    <p>We have suspended your PayPal account due to a violation of our terms of service.</p>
-    <p>To appeal this decision and restore access, you must verify your identity within 48 hours.</p>
-    <p><a href="paypal-customer-support.org/steal-credentials" onclick="handlePhishingLink('paypal.com/restore-account', 'paypal-customer-support.org/steal-credentials'); return false;">Restore Account</a></p>
-  `,
-  isPhishing: true,
-  explanation: "PayPal's real domain is paypal.com - this uses a lookalike. Suspension threats are a high-pressure tactic designed to bypass critical thinking."
-};
-
-const email17 = {
-  from: "Amazon <auto-confirm@amazon.co.uk>",
-  subject: "Your order has been dispatched",
-  body: () => `
-    <p>Hello ${userName},</p>
-    <p>Your order #204-8371920-4859201 has been dispatched and is expected to arrive tomorrow.</p>
-    <p>You can track your parcel using the link in your Amazon account.</p>
-    <p>Thank you for shopping with us.</p>
-  `,
-  isPhishing: false,
-  explanation: "Uses Amazon's real domain, references a specific order number, and directs the user to their own account rather than an external link."
-};
-
-const email18 = {
-  from: "Amazon Security <account-alert@amazon-secure-login.net>",
-  subject: "Suspicious Sign-In Detected On Your Account",
-  body: () => `
-    <p>Dear ${userName},</p>
-    <p>We detected a sign-in to your account from an unrecognised device in Romania.</p>
-    <p>If this was not you, your account may be compromised. Click below immediately to secure it.</p>
-    <p><a href="amazon-secure-login.net/steal-credentials" onclick="handlePhishingLink('amazon.co.uk/secure-your-account', 'amazon-secure-login.net/steal-credentials'); return false;">Secure My Account</a></p>
-  `,
-  isPhishing: true,
-  explanation: "Non-Amazon domain, fear-inducing location detail, and immediate action demand are hallmarks of a phishing attempt."
-};
-
-const email19 = {
-  from: "Careers Service <careers@plymouth.ac.uk>",
-  subject: "New Graduate Opportunities Posted This Week",
-  body: () => `
-    <p>Hi ${userName},</p>
-    <p>Several new graduate scheme opportunities have been added to the Careers portal this week, including roles in cybersecurity, software engineering, and data analysis.</p>
-    <p>Log in to the Careers portal to browse and apply.</p>
-    <p>Best wishes,<br>University of Plymouth Careers Service</p>
-  `,
-  isPhishing: false,
-  explanation: "Official university domain, no suspicious links, and references a service students would expect to hear from."
-};
-
-const email20 = {
-  from: "NHS Digital <health-verify@nhs-patient-portal.co>",
-  subject: "Your NHS Records Require Verification",
-  body: () => `
-    <p>Dear ${userName},</p>
-    <p>As part of an NHS system upgrade, all patients are required to re-verify their details.</p>
-    <p>Failure to do so within 7 days will result in your records being archived and inaccessible to your GP.</p>
-    <p><a href="nhs-patient-portal.co/harvest-data" onclick="handlePhishingLink('nhs.uk/verify-patient-details', 'nhs-patient-portal.co/harvest-data'); return false;">Verify My Details</a></p>
-  `,
-  isPhishing: true,
-  explanation: "The NHS does not contact patients this way. The domain is not nhs.uk, and threatening to archive medical records is a manipulation tactic targeting vulnerable users."
-};
-
-const email21 = {
-  from: "Microsoft 365 <no-reply@microsoft.com>",
-  subject: "Unusual sign-in activity on your account",
-  body: () => `
-    <p>Dear ${userName},</p>
-    <p>We detected a sign-in to your Microsoft 365 account from a new device.</p>
-    <p><strong>Location:</strong> Kiev, Ukraine<br>
-    <strong>Device:</strong> Windows 11 / Chrome<br>
-    <strong>Time:</strong> Today at 03:14 AM</p>
-    <p>If this was you, no action is needed. If you don't recognise this activity, secure your account immediately.</p>
-    <p><a href="microsoft-account-activity.com/review" onclick="handlePhishingLink('account.microsoft.com/activity', 'microsoft-account-activity.com/review'); return false;">Review Activity</a></p>
-    <p>The Microsoft Account Team</p>
-  `,
-  isPhishing: true,
-  explanation: "The sender domain is legitimate but the link goes to microsoft-account-activity.com rather than microsoft.com. The specific device and location details are fabricated to create panic and bypass critical thinking."
-};
-
-const email22 = {
-  from: "DocuSign <dse@docusign.net>",
-  subject: "Your document is ready for signature",
-  body: () => `
-    <p>Hello ${userName},</p>
-    <p><strong>Plymouth University Finance Department</strong> has sent you a document to review and sign.</p>
-    <p><strong>Document:</strong> 2025-26 Bursary Agreement<br>
-    <strong>Expires:</strong> 48 hours from receipt</p>
-    <p>Please review and sign this document at your earliest convenience.</p>
-    <p><a href="docusign-secure.net/sign/PLY-2025-bursary" onclick="handlePhishingLink('docusign.com/sign/PLY-2025-bursary', 'docusign-secure.net/sign/PLY-2025-bursary'); return false;">Review Document</a></p>
-    <p>DocuSign Electronic Signature Service</p>
-  `,
-  isPhishing: true,
-  explanation: "Spoofs a trusted e-signature service and references a plausible university document. The real DocuSign domain is docusign.com; docusign-secure.net is a lookalike. The 48-hour expiry creates artificial urgency."
-};
-
-const email23 = {
-  from: "IT Security <security@plymouth.ac.uk>",
-  subject: "Mandatory: Multi-Factor Authentication Enrollment by Friday",
-  body: () => `
-    <p>Dear ${userName},</p>
-    <p>As part of our ongoing commitment to account security, the University is rolling out mandatory Multi-Factor Authentication (MFA) for all student accounts.</p>
-    <p>You must enrol before Friday 21st March or your account will be suspended pending manual verification.</p>
-    <p><a href="plymouth-mfa-enrol.com/student" onclick="handlePhishingLink('myaccount.plymouth.ac.uk/mfa', 'plymouth-mfa-enrol.com/student'); return false;">Enrol in MFA Now</a></p>
-    <p>IT Security Team<br>University of Plymouth</p>
-  `,
-  isPhishing: true,
-  explanation: "Impersonates the university IT security team with a highly plausible scenario. MFA rollouts are genuinely common; the domain plymouth-mfa-enrol.com is not affiliated with the university. The suspension threat pressures users into acting without checking the URL."
-};
-
-const email24 = {
-  from: "LinkedIn <messages-noreply@linkedin.com>",
-  subject: "You have a new message from a recruiter",
-  body: () => `
-    <p>Hi ${userName},</p>
-    <p><strong>Sarah Mitchell</strong>, Senior Talent Acquisition at <strong>CrowdStrike</strong>, has sent you a message on LinkedIn.</p>
-    <p><em>"Hi, I came across your profile and I think you'd be a great fit for a junior SOC analyst role we're hiring for. Would love to connect; please review the full job description and get back to me."</em></p>
-    <p><a href="linkedin-jobs.net/crowdstrike-soc-analyst" onclick="handlePhishingLink('linkedin.com/messaging', 'linkedin-jobs.net/crowdstrike-soc-analyst'); return false;">View Message and Job Description</a></p>
-    <p>The LinkedIn Team</p>
-  `,
-  isPhishing: true,
-  explanation: "Targets job seekers with a highly convincing recruiter message from a credible company. The sender address looks legitimate but the link goes to linkedin-jobs.net rather than linkedin.com. Spear phishing attacks targeting students and graduates frequently use this pattern."
-};
-
-const email25 = {
-  from: "Barclays <secure.alerts@barclays.co.uk>",
-  subject: "Action Required: Verify Your Account Details",
-  body: () => `
-    <p>Dear ${userName},</p>
-    <p>As part of our regular security review, we need to verify your account information to ensure continued access to online banking.</p>
-    <p>This is a routine process required under FCA regulations and will take less than two minutes.</p>
-    <p>Please complete verification before <strong>midnight tonight</strong> to avoid a temporary hold being placed on your account.</p>
-    <p><a href="barclays-secure-verify.com/confirm" onclick="handlePhishingLink('banking.barclays.co.uk/verify', 'barclays-secure-verify.com/confirm'); return false;">Complete Verification</a></p>
-    <p>Barclays Security Team</p>
-  `,
-  isPhishing: true,
-  explanation: "Highly polished banking phish that references the FCA to appear authoritative. The domain is barclays-secure-verify.com rather than barclays.co.uk. The midnight deadline creates extreme urgency. Legitimate banks never ask customers to verify account details via email."
-};
-
-// email array
-const emails = [
-  email1, email2, email3, email4, email5,
-  email6, email7, email8, email9, email10,
-  email11, email12, email13, email14, email15,
-  email16, email17, email18, email19, email20,
-  email21, email22, email23, email24, email25
-];
-
-// Render function - body is called as a function so userName is evaluated at render time
-// rather than at definition time, ensuring the correct name is injected after the user enters it
-function renderEmail(email) {
-  emailFromEl.textContent = email.from;
-  emailSubjectEl.textContent = email.subject;
-  emailBodyEl.innerHTML = email.body();
-}
-
-// Shows the end screen once all emails have been answered.
-// Hides the email container, action buttons, feedback area, and score footer,
-// then renders a summary card with the final score, percentage, and a performance message.
-function showEndScreen() {
-  const percentage = Math.round((score / emails.length) * 100);
-
-  let message;
-  if (percentage === 100) {
-    message = "Perfect score! You're a phishing detection expert.";
-  } else if (percentage >= 80) {
-    message = "Great work! You have a strong eye for phishing attempts.";
-  } else if (percentage >= 60) {
-    message = "Not bad; but there's room to improve. Review the tips section for guidance.";
-  } else if (percentage >= 40) {
-    message = "You caught some, but missed quite a few. Spend some time on the Phishing Tips page.";
-  } else {
-    message = "Phishing emails are designed to trick you; review the tips and try again.";
-  }
-
-  // Hide the training UI
-  document.getElementById("email-container").style.display = "none";
-  actionsEl.style.display = "none";
-  feedbackEl.style.display = "none";
-  document.querySelector("#view-training footer").style.display = "none";
-
-  // Build and inject the end screen, personalised with the user's name
-  const endScreen = document.createElement("div");
-  endScreen.id = "end-screen";
-  endScreen.innerHTML = `
-    <h2>Training Complete, ${userName}!</h2>
-    <p>You scored <strong>${score} out of ${emails.length}</strong> (${percentage}%)</p>
-    <p>${message}</p>
-    ${percentage >= 80 ? `<p>You've earned a certificate of completion. Click below to download it.</p>` : ''}
-    <button id="btn-restart">Try Again</button>
-  `;
-  document.getElementById("view-training").appendChild(endScreen);
-
-  // Generate and attach certificate download if score is 80% or above
-  if (percentage >= 80) {
-    const cert = `CERTIFICATE OF COMPLETION\n\n` +
-      `This certifies that\n\n` +
-      `${userName}\n\n` +
-      `has successfully completed The School of Phish phishing awareness training\n` +
-      `with a score of ${score} out of ${emails.length} (${percentage}%)\n\n` +
-      `Date: ${new Date().toLocaleDateString('en-GB')}\n\n` +
-      `The School of Phish · <3 · samvincent.me`;
-
-    const blob = new Blob([cert], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    // Create a download link for the certificate
-    const downloadLink = document.createElement('a');
-    downloadLink.href = url;
-    downloadLink.download = `certificate-${userName}.txt`;
-    downloadLink.textContent = 'Download Certificate';
-    downloadLink.className = 'btn-certificate';
-    // Insert before the restart button
-    const restartBtn = document.getElementById("btn-restart");
-    endScreen.insertBefore(downloadLink, restartBtn);
-  }
-
-  // Restart button resets state and returns to the name screen
-  document.getElementById("btn-restart").addEventListener("click", function () {
-    score = 0;
-    currentEmailIndex = 0;
-    userName = "";
-    scoreEl.textContent = score;
-
-    endScreen.remove();
-    document.getElementById("email-container").style.display = "";
-    actionsEl.style.display = "";
-    feedbackEl.style.display = "";
-    document.querySelector("#view-training footer").style.display = "";
-
-    legitBtn.style.display = "";
-    phishBtn.style.display = "";
-
-    trainingContent.style.display = "none";
-    nameScreen.style.display = "";
-    usernameInput.value = "";
-
-    feedbackEl.textContent = "Make your choice above to see if you're correct!";
+  $('#round-dots').addEventListener('click', e => {
+    const btn = e.target.closest('[data-index]');
+    if (btn) selectEmail(Number(btn.dataset.index));
   });
-}
+  $('#inbox-list').addEventListener('click', e => {
+    const btn = e.target.closest('[data-index]');
+    if (btn) selectEmail(Number(btn.dataset.index));
+  });
 
-// Button click handlers - after the user makes a choice, the two answer buttons are hidden
-// so they cannot change their answer before clicking Next. The explanation from the
-// email object is appended to the feedback so the user understands why.
-legitBtn.addEventListener("click", function () {
-  const current = emails[currentEmailIndex];
-  if (current.isPhishing === false) {
-    feedbackEl.textContent = `Correct! This email is legitimate. ${current.explanation}`;
-    score++;
-  } else {
-    feedbackEl.textContent = `Incorrect. This email shows signs of phishing. ${current.explanation}`;
-  }
-  scoreEl.textContent = score;
+  $('#details-toggle').addEventListener('click', () => {
+    const item = currentItem();
+    item.detailsOpen = !item.detailsOpen;
+    renderEmail();
+  });
 
-  // Hide answer buttons after choice is made
-  legitBtn.style.display = "none";
-  phishBtn.style.display = "none";
-});
+  const reader = $('#reader');
 
-phishBtn.addEventListener("click", function () {
-  const current = emails[currentEmailIndex];
-  if (current.isPhishing === true) {
-    feedbackEl.textContent = `Correct! This email is a phishing attempt. ${current.explanation}`;
-    score++;
-  } else {
-    feedbackEl.textContent = `Incorrect. This email appears to be legitimate. ${current.explanation}`;
-  }
-  scoreEl.textContent = score;
+  reader.addEventListener('click', e => {
+    if (pop.contains(e.target)) return;
+    const link = e.target.closest('a.mail-link');
+    if (link) {
+      e.preventDefault();
+      if (popLink === link) closeLinkPop();
+      else openLinkPop(link);
+      return;
+    }
+    const spot = e.target.closest('[data-spot][role="button"]');
+    if (spot) toggleFlag(spot.dataset.spot);
+  });
 
-  // Hide answer buttons after choice is made
-  legitBtn.style.display = "none";
-  phishBtn.style.display = "none";
-});
+  reader.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-spot][role="button"]')) {
+      e.preventDefault();
+      toggleFlag(e.target.dataset.spot);
+    }
+  });
 
-nextBtn.addEventListener("click", function () {
-  currentEmailIndex++;
+  // The fake browser status bar
+  reader.addEventListener('mouseover', e => {
+    const link = e.target.closest('a.mail-link');
+    if (link) showStatus(link.dataset.href);
+  });
+  reader.addEventListener('mouseout', e => {
+    const link = e.target.closest('a.mail-link');
+    if (link && !link.contains(e.relatedTarget)) clearStatus();
+  });
+  reader.addEventListener('focusin', e => {
+    if (e.target.matches('a.mail-link')) showStatus(e.target.dataset.href);
+  });
+  reader.addEventListener('focusout', e => {
+    if (e.target.matches('a.mail-link')) clearStatus();
+  });
 
-  // If all emails have been seen, show the end screen instead of looping
-  if (currentEmailIndex >= emails.length) {
-    showEndScreen();
-    return;
-  }
+  pop.addEventListener('click', e => {
+    const btn = e.target.closest('[data-pop]');
+    if (!btn) return;
+    const action = btn.dataset.pop;
+    if (action === 'close') closeLinkPop(true);
+    if (action === 'open') openLinkFromPop();
+    if (action === 'flag') {
+      toggleFlag(popLink.dataset.spot);
+      btn.textContent = currentItem().flags.has(popLink.dataset.spot) ? 'Remove highlight' : 'Highlight as suspicious';
+    }
+  });
 
-  renderEmail(emails[currentEmailIndex]);
-  feedbackEl.textContent = "Make your choice above to see if you're correct!";
+  document.addEventListener('click', e => {
+    if (!pop.hidden && !pop.contains(e.target) && !e.target.closest('a.mail-link')) closeLinkPop();
+  });
 
-  // Restore answer buttons for the next email
-  legitBtn.style.display = "";
-  phishBtn.style.display = "";
-});
-});
+  $('#btn-legit').addEventListener('click', () => giveVerdict('legit'));
+  $('#btn-phish').addEventListener('click', () => giveVerdict('phish'));
+  $('#btn-next').addEventListener('click', goNext);
+
+  // Keyboard shortcuts: L, P, N, and Escape for the link popover
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !pop.hidden) {
+      closeLinkPop(true);
+      return;
+    }
+    if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+    if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (!round || $('#trainer').hidden || $('#view-train').hidden) return;
+
+    const key = e.key.toLowerCase();
+    const item = currentItem();
+    if (key === 'l' && !item.answer) giveVerdict('legit');
+    else if (key === 'p' && !item.answer) giveVerdict('phish');
+    else if (key === 'n' && item.answer) goNext();
+  });
+
+  window.addEventListener('hashchange', route);
+
+  $('#year').textContent = new Date().getFullYear();
+  route();
+})();
