@@ -21,6 +21,8 @@
   const STORE_KEY = 'school-of-phish:progress:v1';
   const THEME_KEY = 'school-of-phish:theme';
   const MY_ADDRESS = 'me@students.plymouth.ac.uk';
+  const CERT_THRESHOLD = 0.75; // share of the round's maximum points needed for a certificate
+  const NAME_KEY = 'school-of-phish:name';
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -130,7 +132,7 @@
   }));
 
   /* Progress is stored locally; storage can be blocked, so always fail softly. */
-  const freshProgress = () => ({ rounds: [], tactics: {}, emailsSeen: {} });
+  const freshProgress = () => ({ rounds: [], tactics: {}, emailsSeen: {}, certificates: [] });
 
   function loadProgress() {
     try {
@@ -655,6 +657,16 @@
       round.finished = true;
       progress.rounds.push({ at: Date.now(), score: s.score, max: s.max, correct: s.correct, total: s.total, found: s.found, flagTotal: s.flagTotal, opened: s.opened });
       progress.rounds = progress.rounds.slice(-50);
+      if (s.score / s.max >= CERT_THRESHOLD) {
+        const at = Date.now();
+        const cert = {
+          id: 'SOP-' + hashString(`${at}:${s.score}:${s.max}`).toString(36).toUpperCase().padStart(6, '0').slice(0, 6),
+          at, score: s.score, max: s.max, correct: s.correct, total: s.total, found: s.found, flagTotal: s.flagTotal,
+          name: ''
+        };
+        progress.certificates.push(cert);
+        round.certId = cert.id;
+      }
       round.items.forEach(item => {
         const email = emailById.get(item.id);
         progress.emailsSeen[item.id] = (progress.emailsSeen[item.id] || 0) + 1;
@@ -681,19 +693,29 @@
         ]
       : [el('p', { text: "You didn't miss a single red flag. Impressive." })];
 
+    const pct = Math.round((s.score / s.max) * 100);
+    const certBlock = round.certId
+      ? el('div', { class: 'cert-callout' },
+          el('div', {},
+            el('p', { class: 'cert-callout-title', text: "You've earned a certificate" }),
+            el('p', { text: `You scored ${pct}%, and anything from ${Math.round(CERT_THRESHOLD * 100)}% up earns one.` })),
+          el('button', { type: 'button', class: 'btn btn-primary', 'data-action': 'certificate', 'data-cert': round.certId }, 'Get your certificate'))
+      : el('p', { class: 'cert-hint', text: `Score ${Math.round(CERT_THRESHOLD * 100)}% or more in a round to earn a certificate. This round: ${pct}%.` });
+
     const box = $('#results');
     box.replaceChildren(el('div', { class: 'results-paper' },
       el('span', { class: 'grade' + (g.length > 1 ? ' is-long' : ''), 'aria-label': `Grade: ${g}` }, g),
       el('h2', { id: 'results-title', tabindex: '-1', text: 'Round complete' }),
-      el('p', { class: 'results-score', text: `${s.score} points out of a possible ${s.max}.` }),
+      el('p', { class: 'results-score', text: `${s.score} points out of a possible ${s.max} (${pct}%).` }),
       el('dl', { class: 'stat-grid' },
         el('div', { class: 'stat' }, el('dt', { text: 'Right calls' }), el('dd', { text: `${s.correct} of ${s.total}` })),
         el('div', { class: 'stat' }, el('dt', { text: 'Red flags highlighted' }), el('dd', { text: `${s.found} of ${s.flagTotal}` })),
         el('div', { class: 'stat' }, el('dt', { text: 'Phishing links opened' }), el('dd', { text: String(s.opened) }))
       ),
+      certBlock,
       ...revisit,
       el('div', { class: 'actions-row' },
-        el('button', { type: 'button', class: 'btn btn-primary', 'data-action': 'start' }, 'Start a new round'),
+        el('button', { type: 'button', class: round.certId ? 'btn btn-quiet' : 'btn btn-primary', 'data-action': 'start' }, 'Start a new round'),
         el('button', { type: 'button', class: 'btn btn-quiet', 'data-action': 'review' }, 'Review this round'),
         el('a', { class: 'btn btn-quiet', href: '#progress' }, 'See your progress')
       )
@@ -789,6 +811,14 @@
           el('span', { class: 'mastery-count', text: `${t.spotted}/${t.seen}` })
         )))
       ),
+      progress.certificates.length ? el('section', { class: 'progress-section', 'aria-labelledby': 'certs-title' },
+        el('h2', { id: 'certs-title', text: 'Certificates' }),
+        el('p', { text: 'Every round where you scored ' + Math.round(CERT_THRESHOLD * 100) + '% or more. You can reprint or download any of them.' }),
+        el('ul', { class: 'cert-list' }, progress.certificates.slice().reverse().map(c => el('li', {},
+          el('span', {}, el('strong', { text: `${Math.round((c.score / c.max) * 100)}%` }), ` on ${formatCertDate(c.at)}`, c.name ? `, ${c.name}` : ''),
+          el('button', { type: 'button', class: 'btn btn-small btn-quiet', 'data-action': 'certificate', 'data-cert': c.id }, 'View certificate')
+        )))
+      ) : null,
       el('section', { class: 'progress-section', 'aria-labelledby': 'recent-title' },
         el('h2', { id: 'recent-title', text: 'Recent rounds' }),
         el('div', { class: 'table-wrap' }, el('table', { class: 'rounds-table' },
@@ -808,6 +838,232 @@
     );
   }
 
+  /* ===== Certificates =====
+   * Earned by scoring CERT_THRESHOLD or more in a round. The certificate is
+   * HTML (so it prints cleanly to paper or PDF) and can also be drawn to a
+   * canvas for a PNG download. Wording, signatory and artwork come from the
+   * certificate markup in index.html, so they only need changing in one place.
+   */
+
+  const certDialog = $('#cert-dialog');
+  const certNameInput = $('#cert-name-input');
+  const certArt = $('#cert-art');
+  let currentCert = null;
+
+  certArt.addEventListener('error', () => { certArt.hidden = true; });
+
+  function loadName() {
+    try { return localStorage.getItem(NAME_KEY) || ''; } catch (e) { return ''; }
+  }
+
+  function saveName(name) {
+    try { localStorage.setItem(NAME_KEY, name); } catch (e) { /* ignore */ }
+  }
+
+  function formatCertDate(ts) {
+    return new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function certSentence(c) {
+    const pct = Math.round((c.score / c.max) * 100);
+    return `has completed a round of phishing detection training with a score of ${pct}%, making ${c.correct} of ${c.total} right calls and highlighting ${c.found} of ${c.flagTotal} red flags.`;
+  }
+
+  function openCertificate(id) {
+    const cert = progress.certificates.find(c => c.id === id);
+    if (!cert) return;
+    currentCert = cert;
+    certNameInput.value = cert.name || loadName();
+    $('#cert-message').textContent = '';
+    updateCertificate();
+    certDialog.showModal();
+    certNameInput.focus();
+  }
+
+  function updateCertificate() {
+    const name = certNameInput.value.trim();
+    const nameEl = $('#cert-name');
+    nameEl.textContent = name || 'Your name here';
+    nameEl.classList.toggle('is-empty', !name);
+    $('#cert-body').textContent = certSentence(currentCert);
+    $('#cert-date').textContent = formatCertDate(currentCert.at);
+    $('#cert-ref').textContent = currentCert.id;
+    $$('[data-cert-action="print"], [data-cert-action="image"]', certDialog).forEach(b => { b.disabled = !name; });
+  }
+
+  // Save the name on the certificate (and for next time) before it's issued.
+  function commitName() {
+    const name = certNameInput.value.trim();
+    if (!name) {
+      certNameInput.focus();
+      return false;
+    }
+    currentCert.name = name;
+    saveName(name);
+    saveProgress();
+    return true;
+  }
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  function wrapLines(ctx, text, maxWidth) {
+    const lines = [];
+    let line = '';
+    text.split(' ').forEach(word => {
+      const test = line ? line + ' ' + word : word;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = test;
+      }
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  async function downloadCertificateImage(c) {
+    const W = 2000;
+    const H = 1414; // A4 landscape proportions
+    const sans = '"Atkinson Hyperlegible", system-ui, sans-serif';
+    const hand = 'Caveat, "Segoe Print", cursive';
+    const mono = '"IBM Plex Mono", ui-monospace, monospace';
+    const text = sel => $(sel, certDialog).textContent.trim();
+
+    if (document.fonts) {
+      await Promise.all([
+        document.fonts.load(`700 60px ${sans}`), document.fonts.load(`400 40px ${sans}`),
+        document.fonts.load(`600 100px ${hand}`), document.fonts.load(`400 30px ${mono}`)
+      ]).catch(() => {});
+    }
+    const art = certArt.hidden ? null : await loadImage(certArt.src).catch(() => null);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // Paper and border
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#17698a';
+    ctx.lineWidth = 12;
+    ctx.strokeRect(60, 60, W - 120, H - 120);
+    ctx.lineWidth = 3;
+    ctx.strokeRect(92, 92, W - 184, H - 184);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    if (art) ctx.drawImage(art, W / 2 - 110, 140, 220, 220);
+
+    ctx.fillStyle = '#4b6474';
+    ctx.font = `700 36px ${sans}`;
+    ctx.fillText(text('.cert-school'), W / 2, 420);
+
+    ctx.fillStyle = '#10293a';
+    ctx.font = `700 92px ${sans}`;
+    ctx.fillText(text('.cert-title'), W / 2, 530);
+
+    ctx.fillStyle = '#4b6474';
+    ctx.font = `400 40px ${sans}`;
+    ctx.fillText(text('.cert-intro'), W / 2, 630);
+
+    // Name: shrink to fit long names
+    let size = 150;
+    ctx.font = `600 ${size}px ${hand}`;
+    while (ctx.measureText(c.name).width > 1300 && size > 60) {
+      size -= 6;
+      ctx.font = `600 ${size}px ${hand}`;
+    }
+    ctx.fillStyle = '#17698a';
+    ctx.fillText(c.name, W / 2, 780);
+    ctx.strokeStyle = '#c9d9d7';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 520, 815);
+    ctx.lineTo(W / 2 + 520, 815);
+    ctx.stroke();
+
+    ctx.fillStyle = '#10293a';
+    ctx.font = `400 40px ${sans}`;
+    wrapLines(ctx, certSentence(c), 1320).forEach((line, i) => ctx.fillText(line, W / 2, 905 + i * 58));
+
+    // Footer: date, signature, reference
+    const cols = [W * 0.24, W / 2, W * 0.76];
+    const values = [
+      [formatCertDate(c.at), `400 38px ${sans}`, '#10293a'],
+      [text('.cert-sign'), `600 72px ${hand}`, '#c13d27'],
+      [c.id, `400 34px ${mono}`, '#10293a']
+    ];
+    const labels = $$('.cert-label', certDialog).map(n => n.textContent.trim());
+    cols.forEach((x, i) => {
+      ctx.font = values[i][1];
+      ctx.fillStyle = values[i][2];
+      ctx.fillText(values[i][0], x, 1220);
+      ctx.strokeStyle = '#10293a';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 230, 1245);
+      ctx.lineTo(x + 230, 1245);
+      ctx.stroke();
+      ctx.font = `400 30px ${sans}`;
+      ctx.fillStyle = '#4b6474';
+      ctx.fillText(labels[i] || '', x, 1290);
+    });
+
+    // toBlob throws if the canvas is "tainted", e.g. when opened from file://
+    const blob = await new Promise((resolve, reject) => {
+      try { canvas.toBlob(b => (b ? resolve(b) : reject(new Error('No image'))), 'image/png'); } catch (e) { reject(e); }
+    });
+    const slug = c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'certificate';
+    const url = URL.createObjectURL(blob);
+    const link = el('a', { href: url, download: `school-of-phish-certificate-${slug}.png` });
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  certNameInput.addEventListener('input', updateCertificate);
+  certNameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (commitName()) $('[data-cert-action="print"]', certDialog).focus();
+    }
+  });
+
+  certDialog.addEventListener('click', async e => {
+    if (e.target === certDialog) { certDialog.close(); return; } // click on the backdrop
+    const btn = e.target.closest('[data-cert-action]');
+    if (!btn) return;
+    const action = btn.dataset.certAction;
+    if (action === 'close') certDialog.close();
+    if (action === 'print' && commitName()) window.print();
+    if (action === 'image' && commitName()) {
+      const message = $('#cert-message');
+      btn.disabled = true;
+      message.textContent = '';
+      try {
+        await downloadCertificateImage(currentCert);
+        announce('Certificate downloaded');
+      } catch (err) {
+        message.textContent = "Couldn't create the image here (this happens when the page is opened straight from your files). Use Print or save as PDF instead, or try again on the live site.";
+      }
+      btn.disabled = false;
+    }
+  });
+
+  certDialog.addEventListener('close', () => {
+    if (!$('#view-progress').hidden) renderProgress(); // show any new name in the list
+  });
+
   /* ===== 8. Events ===== */
 
   // Global buttons: start, review, reset
@@ -817,6 +1073,7 @@
     const name = action.dataset.action;
     if (name === 'start') startRound();
     if (name === 'review') reviewRound();
+    if (name === 'certificate') openCertificate(action.dataset.cert);
     if (name === 'reset' && window.confirm('Reset all your progress? This can\'t be undone.')) {
       progress = freshProgress();
       saveProgress();

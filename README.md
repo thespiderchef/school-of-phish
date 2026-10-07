@@ -10,11 +10,16 @@ An interactive phishing awareness trainer. Learners work through a realistic inb
 - Marked-up debriefs with numbered red flags, linked to a field guide of 14 phishing tactics
 - Rounds of 10 drawn from 24 scenarios (business email compromise, QR code phishing, lookalike and buried domains, malicious attachments, and genuine emails that look suspicious)
 - Progress tracking in localStorage: scores, accuracy, and the red flag types you miss most
+- Personalised certificate for scoring 75% or more in a round, printable to A4 or PDF, or downloadable as a PNG
 - Light and dark themes, keyboard shortcuts (L, P, N), screen reader announcements, reduced motion support, responsive down to phone size
 
 ## Running it
 
 No build step. Open `index.html`, or serve the folder with any static host (GitHub Pages works as-is).
+
+## Certificate artwork
+
+The certificate uses `assets/certificate-art.svg`. Replace that file (or change the `src` of `#cert-art` in `index.html`) to use different artwork. The certificate wording and signatory are also in `index.html`, and the pass mark is `CERT_THRESHOLD` in `app.js`.
 
 ## Adding scenarios
 

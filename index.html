@@ -215,6 +215,43 @@
 
   <p class="visually-hidden" id="announcer" aria-live="polite"></p>
 
+  <!-- Certificate: earned by scoring 75% or more in a round (see CERT_THRESHOLD in app.js).
+       The wording, signatory and artwork here are also used for the image download. -->
+  <dialog class="cert-dialog" id="cert-dialog" aria-labelledby="cert-dialog-title">
+    <div class="cert-dialog-head">
+      <h2 id="cert-dialog-title">Your certificate</h2>
+      <button class="cert-close" type="button" data-cert-action="close" aria-label="Close">×</button>
+    </div>
+
+    <div class="cert-form">
+      <label for="cert-name-input">Name on certificate</label>
+      <input id="cert-name-input" type="text" maxlength="50" autocomplete="name" spellcheck="false">
+      <p class="small muted">Saved in this browser so you won't need to type it again.</p>
+    </div>
+
+    <div class="certificate" id="certificate">
+      <div class="cert-inner">
+        <img class="cert-art" id="cert-art" src="assets/certificate-art.svg" alt="">
+        <p class="cert-school">The School of Phish</p>
+        <p class="cert-title">Certificate of Achievement</p>
+        <p class="cert-intro">This is to certify that</p>
+        <p class="cert-name" id="cert-name"></p>
+        <p class="cert-body" id="cert-body"></p>
+        <div class="cert-foot">
+          <div><span class="cert-value" id="cert-date"></span><span class="cert-label">Date</span></div>
+          <div><span class="cert-value cert-sign">Sam Vincent</span><span class="cert-label">Head of School</span></div>
+          <div><span class="cert-value cert-ref" id="cert-ref"></span><span class="cert-label">Reference</span></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="cert-message" id="cert-message" role="status"></p>
+    <div class="cert-actions">
+      <button class="btn btn-primary" type="button" data-cert-action="print">Print or save as PDF</button>
+      <button class="btn btn-quiet" type="button" data-cert-action="image">Download image</button>
+    </div>
+  </dialog>
+
   <script src="data.js"></script>
   <script src="app.js"></script>
 </body>

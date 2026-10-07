@@ -968,6 +968,177 @@ kbd {
 }
 .site-footer p { margin: 0; }
 
+/* ---------- Certificate ---------- */
+.cert-callout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin: 0 0 1.75rem;
+  padding: 1rem 1.25rem;
+  border: 2px solid var(--kelp);
+  border-radius: var(--radius-m);
+}
+.cert-callout p { margin: 0; }
+.cert-callout-title { font-weight: 700; font-size: var(--step-1); }
+.cert-hint { margin: 0 0 1.75rem; color: var(--ink-soft); }
+
+.cert-list { display: grid; gap: 0.5rem; max-width: 44rem; margin: 0; padding: 0; list-style: none; }
+.cert-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.cert-dialog {
+  width: min(960px, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  padding: 1.25rem 1.5rem 1.5rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow);
+}
+.cert-dialog::backdrop { background: rgba(8, 20, 27, 0.6); }
+.cert-dialog-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.cert-dialog-head h2 { margin: 0; font-size: var(--step-2); }
+.cert-close {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.cert-close:hover { color: var(--ink); background: var(--surface-2); }
+
+.cert-form { display: grid; gap: 0.35rem; max-width: 26rem; margin-bottom: 1.25rem; }
+.cert-form label { font-weight: 700; }
+.cert-form input {
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface-2);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-s);
+}
+.cert-form input:focus { border-color: var(--tide); outline: none; }
+.cert-form p { margin: 0; }
+
+/* The certificate itself always uses fixed "paper" colours, whatever the theme.
+   Sizes use container units so the preview scales like a real sheet. */
+.certificate {
+  container-type: inline-size;
+  aspect-ratio: 1.414;
+  padding: 3cqw;
+  color: #10293a;
+  background: #ffffff;
+  border-radius: var(--radius-s);
+  box-shadow: 0 0 0 1px var(--line);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.cert-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  padding: 2.5cqw 5cqw 3cqw;
+  text-align: center;
+  border: 0.6cqw solid #17698a;
+  outline: 0.15cqw solid #17698a;
+  outline-offset: -1.6cqw;
+}
+.cert-inner p { margin: 0; }
+.cert-art { width: 11cqw; height: 11cqw; object-fit: contain; margin-bottom: 1cqw; }
+.cert-school { font-size: 1.8cqw; font-weight: 700; color: #4b6474; }
+.cert-title { margin: 0.4cqw 0 1.4cqw !important; font-size: 4.6cqw; font-weight: 700; line-height: 1.1; }
+.cert-intro { font-size: 2cqw; color: #4b6474; }
+.cert-name {
+  min-width: 52cqw;
+  max-width: 100%;
+  margin-top: 0.4cqw !important;
+  padding: 0 3cqw 0.4cqw;
+  font-family: var(--font-hand);
+  font-size: 7cqw;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #17698a;
+  overflow-wrap: anywhere;
+  border-bottom: 0.15cqw solid #c9d9d7;
+}
+.cert-name.is-empty { color: #a9bcc2; }
+.cert-body { max-width: 66cqw; margin-top: 2cqw !important; font-size: 2cqw; line-height: 1.45; }
+.cert-foot {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4cqw;
+  width: 100%;
+  margin-top: auto;
+}
+.cert-foot > div { display: flex; flex-direction: column; align-items: center; }
+.cert-value { display: flex; align-items: flex-end; height: 5cqw; padding-bottom: 0.6cqw; font-size: 1.9cqw; }
+.cert-sign { font-family: var(--font-hand); font-size: 3.6cqw; font-weight: 600; line-height: 1; color: #c13d27; }
+.cert-ref { font-family: var(--font-mono); font-size: 1.6cqw; }
+.cert-label {
+  width: 100%;
+  padding-top: 0.6cqw;
+  font-size: 1.45cqw;
+  color: #4b6474;
+  border-top: 0.15cqw solid #10293a;
+}
+
+.cert-message:not(:empty) {
+  margin: 1rem 0 0;
+  padding: 0.6rem 0.85rem;
+  font-size: var(--step--1);
+  background: var(--surface-2);
+  border-left: 3px solid var(--coral);
+}
+.cert-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.25rem; }
+
+/* Printing (or "Save as PDF") prints only the certificate, on one A4 page. */
+@media print {
+  @page { size: A4 landscape; margin: 0; }
+  :root { padding: 0; }
+  html, body { background: #fff !important; }
+  body > :not(.cert-dialog) { display: none !important; }
+  .cert-dialog {
+    position: static;
+    width: auto;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    background: #fff;
+    border: 0;
+    box-shadow: none;
+  }
+  .cert-dialog::backdrop { display: none; }
+  .cert-dialog-head, .cert-form, .cert-message, .cert-actions { display: none !important; }
+  .certificate {
+    width: 297mm;
+    height: 210mm;
+    aspect-ratio: auto;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
 /* ---------- Motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
