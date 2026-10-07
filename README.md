@@ -9,7 +9,8 @@ An interactive phishing awareness trainer. Learners work through a realistic inb
 - Link checking: clicking a link shows its true destination with the real domain underlined, and opening a phishing link costs points
 - Marked-up debriefs with numbered red flags, linked to a field guide of 14 phishing tactics
 - Rounds of 10 drawn from 27 everyday scenarios: parcel and tax refund scams, safe-account bank fraud, fake parking fines with QR codes, invoice fraud, gift card requests, and genuine emails from banks, GPs, councils and family to compare them with
-- Progress tracking in localStorage: scores, accuracy, and the red flag types you miss most
+- Built for shared devices: progress is kept in sessionStorage for the current session only, and an "End session" button clears everything for the next person
+- Session progress tracking: scores, accuracy, and the red flag types you miss most
 - Personalised certificate for scoring 75% or more in a round, printable to A4 or PDF, or downloadable as a PNG
 - Light and dark themes, keyboard shortcuts (L, P, N), screen reader announcements, reduced motion support, responsive down to phone size
 

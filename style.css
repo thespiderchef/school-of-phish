@@ -286,6 +286,7 @@ kbd {
   align-items: center;
   padding-block: clamp(0.5rem, 4vw, 3rem);
 }
+.intro h1:focus { outline: none; }
 .intro h1 {
   font-size: var(--step-4);
   max-width: 13ch;

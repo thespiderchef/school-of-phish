@@ -54,7 +54,7 @@
 
       <div class="intro" id="intro">
         <div class="intro-copy">
-          <h1 id="train-title">Every email here is a test.</h1>
+          <h1 id="train-title" tabindex="-1">Every email here is a test.</h1>
           <p class="lede">Read each one the way you'd read your own inbox. Highlight anything that looks off, then decide whether it's legitimate or phishing. Afterwards, you'll see exactly what gave it away.</p>
           <ol class="how">
             <li><span><strong>Read</strong> the email. Hover over links and open the sender details, just as you would for real.</span></li>
@@ -62,7 +62,7 @@
             <li><span><strong>Decide</strong> whether it's legitimate or phishing, then read the marked-up answer.</span></li>
           </ol>
           <button class="btn btn-primary btn-large" type="button" data-action="start">Start a round of 10</button>
-          <p class="small muted">Your progress is saved in this browser only. Nothing is sent anywhere.</p>
+          <p class="small muted">Nothing is sent anywhere, and your results are cleared when you end your session or close this tab.</p>
         </div>
 
         <figure class="specimen">
@@ -180,7 +180,7 @@
     <section class="view" id="view-progress" aria-labelledby="progress-title" hidden>
       <header class="page-head">
         <h1 id="progress-title">Your progress</h1>
-        <p class="lede">How you're doing across every round, and which red flags you tend to miss.</p>
+        <p class="lede">How you're doing this session, and which red flags you tend to miss. Everything here clears when you end the session or close the tab.</p>
       </header>
       <div id="progress-body"></div>
     </section>
@@ -201,7 +201,7 @@
         <p>As a dad of two, the motivation goes beyond the academic. Phishing remains one of the most common and damaging ways into people's accounts and organisations' networks, and building tools that help everyday people recognise and resist it is exactly the kind of work that matters.</p>
 
         <h2>How it's built</h2>
-        <p>Vanilla HTML, CSS and JavaScript, with no frameworks, dependencies or build step. Emails are stored as structured data and rendered without injecting HTML; progress stays in your browser's local storage. The project started life as coursework for COMP1004 Computing Practice.</p>
+        <p>Vanilla HTML, CSS and JavaScript, with no frameworks, dependencies or build step. Emails are stored as structured data and rendered without injecting HTML; progress is kept only for the current browser session, so the app works on shared computers without mixing people's results. The project started life as coursework for COMP1004 Computing Practice.</p>
 
         <h2>About the emails</h2>
         <p>Every scenario is fictional. Real organisation names appear only to show how impersonation works. Links and addresses in the phishing examples are invented and go nowhere, and sender addresses shown for real organisations are illustrative, so always check an organisation's own website for how it contacts you.</p>
@@ -226,7 +226,7 @@
     <div class="cert-form">
       <label for="cert-name-input">Name on certificate</label>
       <input id="cert-name-input" type="text" maxlength="50" autocomplete="name" spellcheck="false">
-      <p class="small muted">Saved in this browser so you won't need to type it again.</p>
+      <p class="small muted">Only kept for this session.</p>
     </div>
 
     <div class="cert-frame" id="cert-frame">

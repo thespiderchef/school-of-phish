@@ -131,19 +131,39 @@
     if (!tacticById.has(f.tactic)) console.warn(`Email "${e.id}" uses unknown tactic "${f.tactic}"`);
   }));
 
-  /* Progress is stored locally; storage can be blocked, so always fail softly. */
+  /* Built for shared, one-off use (schools, workplaces, events): progress and
+     the certificate name live in sessionStorage, so they vanish when the tab
+     closes, and "End session" clears them immediately for the next person.
+     Storage can be blocked, so always fail softly. */
+  const session = (() => {
+    try {
+      window.sessionStorage.setItem('school-of-phish:test', '1');
+      window.sessionStorage.removeItem('school-of-phish:test');
+      return window.sessionStorage;
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  // Earlier versions kept progress in localStorage; remove any leftovers so
+  // nothing from a previous user survives on a shared machine.
+  try {
+    localStorage.removeItem(STORE_KEY);
+    localStorage.removeItem(NAME_KEY);
+  } catch (e) { /* ignore */ }
+
   const freshProgress = () => ({ rounds: [], tactics: {}, emailsSeen: {}, certificates: [] });
 
   function loadProgress() {
     try {
-      const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+      const saved = session && JSON.parse(session.getItem(STORE_KEY));
       if (saved && Array.isArray(saved.rounds)) return { ...freshProgress(), ...saved };
     } catch (e) { /* fall through */ }
     return freshProgress();
   }
 
   function saveProgress() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(progress)); } catch (e) { /* ignore */ }
+    try { if (session) session.setItem(STORE_KEY, JSON.stringify(progress)); } catch (e) { /* ignore */ }
   }
 
   let progress = loadProgress();
@@ -717,7 +737,8 @@
       el('div', { class: 'actions-row' },
         el('button', { type: 'button', class: round.certId ? 'btn btn-quiet' : 'btn btn-primary', 'data-action': 'start' }, 'Start a new round'),
         el('button', { type: 'button', class: 'btn btn-quiet', 'data-action': 'review' }, 'Review this round'),
-        el('a', { class: 'btn btn-quiet', href: '#progress' }, 'See your progress')
+        el('a', { class: 'btn btn-quiet', href: '#progress' }, 'See your progress'),
+        el('button', { type: 'button', class: 'btn btn-quiet', 'data-action': 'end-session' }, 'End session')
       )
     ));
 
@@ -813,7 +834,7 @@
       ),
       progress.certificates.length ? el('section', { class: 'progress-section', 'aria-labelledby': 'certs-title' },
         el('h2', { id: 'certs-title', text: 'Certificates' }),
-        el('p', { text: 'Every round where you scored ' + Math.round(CERT_THRESHOLD * 100) + '% or more. You can reprint or download any of them.' }),
+        el('p', { text: 'Every round this session where you scored ' + Math.round(CERT_THRESHOLD * 100) + '% or more. You can reprint or download any of them.' }),
         el('ul', { class: 'cert-list' }, progress.certificates.slice().reverse().map(c => el('li', {},
           el('span', {}, el('strong', { text: `${Math.round((c.score / c.max) * 100)}%` }), ` on ${formatCertDate(c.at)}`, c.name ? `, ${c.name}` : ''),
           el('button', { type: 'button', class: 'btn btn-small btn-quiet', 'data-action': 'certificate', 'data-cert': c.id }, 'View certificate')
@@ -833,7 +854,7 @@
       ),
       el('div', { class: 'actions-row' },
         el('button', { type: 'button', class: 'btn btn-primary', 'data-action': 'start' }, 'Start a round'),
-        el('button', { type: 'button', class: 'btn btn-quiet', 'data-action': 'reset' }, 'Reset progress')
+        el('button', { type: 'button', class: 'btn btn-quiet', 'data-action': 'end-session' }, 'End session')
       )
     );
   }
@@ -862,11 +883,11 @@
   window.addEventListener('resize', fitCertificate);
 
   function loadName() {
-    try { return localStorage.getItem(NAME_KEY) || ''; } catch (e) { return ''; }
+    try { return (session && session.getItem(NAME_KEY)) || ''; } catch (e) { return ''; }
   }
 
   function saveName(name) {
-    try { localStorage.setItem(NAME_KEY, name); } catch (e) { /* ignore */ }
+    try { if (session) session.setItem(NAME_KEY, name); } catch (e) { /* ignore */ }
   }
 
   function formatCertDate(ts) {
@@ -1084,13 +1105,35 @@
     if (name === 'start') startRound();
     if (name === 'review') reviewRound();
     if (name === 'certificate') openCertificate(action.dataset.cert);
-    if (name === 'reset' && window.confirm('Reset all your progress? This can\'t be undone.')) {
-      progress = freshProgress();
-      saveProgress();
-      renderProgress();
-      announce('Progress reset');
-    }
+    if (name === 'end-session') endSession();
   });
+
+  // Clear everything about the current person and return to the start screen.
+  function endSession() {
+    const hasCert = progress.certificates.length > 0;
+    const message = 'End this session? Scores, certificates and the name you entered will be cleared so the next person starts fresh.'
+      + (hasCert ? '\n\nIf you want to keep your certificate, download or print it first.' : '');
+    if (!window.confirm(message)) return;
+
+    try {
+      if (session) {
+        session.removeItem(STORE_KEY);
+        session.removeItem(NAME_KEY);
+      }
+    } catch (e) { /* ignore */ }
+    progress = freshProgress();
+    round = null;
+    currentCert = null;
+    if (certDialog.open) certDialog.close();
+
+    $('#trainer').hidden = true;
+    $('#results').hidden = true;
+    $('#intro').hidden = false;
+    if (location.hash === '#train') route();
+    else location.hash = '#train';
+    window.setTimeout(() => $('#train-title').focus(), 50);
+    announce('Session ended. Ready for the next person.');
+  }
 
   // Skip link: focus main content without changing the route
   $('[data-skip]').addEventListener('click', e => {
