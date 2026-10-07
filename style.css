@@ -1038,16 +1038,28 @@ kbd {
 .cert-form input:focus { border-color: var(--tide); outline: none; }
 .cert-form p { margin: 0; }
 
-/* The certificate itself always uses fixed "paper" colours, whatever the theme.
-   Sizes use container units so the preview scales like a real sheet. */
-.certificate {
-  container-type: inline-size;
-  aspect-ratio: 1.414;
-  padding: 3cqw;
-  color: #10293a;
-  background: #ffffff;
+/* The certificate is laid out once at a fixed A4 landscape size
+   (1123 x 794px = 297 x 210mm at 96dpi). On screen it's scaled down to fit
+   the dialog (app.js sets --cert-scale); when printing it's used at full size.
+   It always uses fixed "paper" colours, whatever the theme. */
+.cert-frame {
+  position: relative;
+  aspect-ratio: 1123 / 794;
+  overflow: hidden;
   border-radius: var(--radius-s);
   box-shadow: 0 0 0 1px var(--line);
+}
+.certificate {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1123px;
+  height: 794px;
+  padding: 34px;
+  color: #10293a;
+  background: #ffffff;
+  transform: scale(var(--cert-scale, 1));
+  transform-origin: 0 0;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
@@ -1056,49 +1068,49 @@ kbd {
   flex-direction: column;
   align-items: center;
   height: 100%;
-  padding: 2.5cqw 5cqw 3cqw;
+  padding: 28px 56px 34px;
   text-align: center;
-  border: 0.6cqw solid #17698a;
-  outline: 0.15cqw solid #17698a;
-  outline-offset: -1.6cqw;
+  border: 7px solid #17698a;
+  outline: 2px solid #17698a;
+  outline-offset: -18px;
 }
 .cert-inner p { margin: 0; }
-.cert-art { width: 11cqw; height: 11cqw; object-fit: contain; margin-bottom: 1cqw; }
-.cert-school { font-size: 1.8cqw; font-weight: 700; color: #4b6474; }
-.cert-title { margin: 0.4cqw 0 1.4cqw !important; font-size: 4.6cqw; font-weight: 700; line-height: 1.1; }
-.cert-intro { font-size: 2cqw; color: #4b6474; }
+.cert-art { width: 124px; height: 124px; object-fit: contain; margin-bottom: 10px; }
+.cert-school { font-size: 20px; font-weight: 700; color: #4b6474; }
+.cert-title { margin: 4px 0 16px !important; font-size: 52px; font-weight: 700; line-height: 1.1; }
+.cert-intro { font-size: 22px; color: #4b6474; }
 .cert-name {
-  min-width: 52cqw;
+  min-width: 580px;
   max-width: 100%;
-  margin-top: 0.4cqw !important;
-  padding: 0 3cqw 0.4cqw;
+  margin-top: 4px !important;
+  padding: 0 34px 4px;
   font-family: var(--font-hand);
-  font-size: 7cqw;
+  font-size: 78px;
   font-weight: 600;
   line-height: 1.1;
   color: #17698a;
   overflow-wrap: anywhere;
-  border-bottom: 0.15cqw solid #c9d9d7;
+  border-bottom: 2px solid #c9d9d7;
 }
 .cert-name.is-empty { color: #a9bcc2; }
-.cert-body { max-width: 66cqw; margin-top: 2cqw !important; font-size: 2cqw; line-height: 1.45; }
+.cert-body { max-width: 740px; margin-top: 22px !important; font-size: 22px; line-height: 1.45; }
 .cert-foot {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 4cqw;
+  gap: 45px;
   width: 100%;
   margin-top: auto;
 }
 .cert-foot > div { display: flex; flex-direction: column; align-items: center; }
-.cert-value { display: flex; align-items: flex-end; height: 5cqw; padding-bottom: 0.6cqw; font-size: 1.9cqw; }
-.cert-sign { font-family: var(--font-hand); font-size: 3.6cqw; font-weight: 600; line-height: 1; color: #c13d27; }
-.cert-ref { font-family: var(--font-mono); font-size: 1.6cqw; }
+.cert-value { display: flex; align-items: flex-end; height: 56px; padding-bottom: 7px; font-size: 21px; }
+.cert-sign { font-family: var(--font-hand); font-size: 40px; font-weight: 600; line-height: 1; color: #c13d27; }
+.cert-ref { font-family: var(--font-mono); font-size: 18px; }
 .cert-label {
   width: 100%;
-  padding-top: 0.6cqw;
-  font-size: 1.45cqw;
+  padding-top: 7px;
+  font-size: 16px;
   color: #4b6474;
-  border-top: 0.15cqw solid #10293a;
+  border-top: 2px solid #10293a;
 }
 
 .cert-message:not(:empty) {
@@ -1114,12 +1126,19 @@ kbd {
 @media print {
   @page { size: A4 landscape; margin: 0; }
   :root { padding: 0; }
-  html, body { background: #fff !important; }
+  html, body {
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    background: #fff !important;
+  }
+  body { display: block; }
   body > :not(.cert-dialog) { display: none !important; }
   .cert-dialog {
     position: static;
     width: auto;
     max-width: none;
+    height: auto;
     max-height: none;
     margin: 0;
     padding: 0;
@@ -1130,12 +1149,20 @@ kbd {
   }
   .cert-dialog::backdrop { display: none; }
   .cert-dialog-head, .cert-form, .cert-message, .cert-actions { display: none !important; }
-  .certificate {
+  .cert-frame {
     width: 297mm;
-    height: 210mm;
+    height: 209mm; /* a hair under A4 so rounding never spills onto a second page */
     aspect-ratio: auto;
+    overflow: hidden;
     border-radius: 0;
     box-shadow: none;
+    break-inside: avoid;
+  }
+  .certificate {
+    position: static;
+    width: 297mm;
+    height: 209mm;
+    transform: none;
   }
 }
 

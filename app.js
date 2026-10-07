@@ -852,6 +852,15 @@
 
   certArt.addEventListener('error', () => { certArt.hidden = true; });
 
+  // Scale the fixed-size certificate to fit the dialog on screen.
+  const certFrame = $('#cert-frame');
+  const CERT_WIDTH = 1123;
+  function fitCertificate() {
+    if (certFrame.clientWidth) certFrame.style.setProperty('--cert-scale', certFrame.clientWidth / CERT_WIDTH);
+  }
+  if ('ResizeObserver' in window) new ResizeObserver(fitCertificate).observe(certFrame);
+  window.addEventListener('resize', fitCertificate);
+
   function loadName() {
     try { return localStorage.getItem(NAME_KEY) || ''; } catch (e) { return ''; }
   }
@@ -877,6 +886,7 @@
     $('#cert-message').textContent = '';
     updateCertificate();
     certDialog.showModal();
+    fitCertificate();
     certNameInput.focus();
   }
 
