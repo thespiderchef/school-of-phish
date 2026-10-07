@@ -20,7 +20,7 @@
   const POINTS = { verdict: 100, flag: 25, falseFlag: -10, openedPhish: -25 };
   const STORE_KEY = 'school-of-phish:progress:v1';
   const THEME_KEY = 'school-of-phish:theme';
-  const MY_ADDRESS = 'me@students.plymouth.ac.uk';
+  const MY_ADDRESS = 'jamie.taylor@example.co.uk';
   const CERT_THRESHOLD = 0.75; // share of the round's maximum points needed for a certificate
   const NAME_KEY = 'school-of-phish:name';
 
